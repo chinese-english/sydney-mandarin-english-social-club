@@ -1171,6 +1171,10 @@ h2 {
   gap: 10px;
 }
 
+.sentence-field-inputs-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .selected-stack {
   display: grid;
   gap: 12px;
