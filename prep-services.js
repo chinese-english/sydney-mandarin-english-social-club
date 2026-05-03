@@ -762,11 +762,8 @@ export function createPresentationController({
   nextZone.addEventListener("click", function () {
     move(1);
   });
-  slide.addEventListener("click", function () {
-    const entry = getSelectedEntries()[presentationIndex];
-    if (entry) {
-      speakSentenceById(entry.id, slide);
-    }
+  slide.addEventListener("pointerup", function (event) {
+    handlePresentationTap(event);
   });
 
   overlay.addEventListener("click", function (event) {
@@ -859,6 +856,27 @@ export function createPresentationController({
     }
 
     overlay.requestFullscreen().catch(function () {});
+  }
+
+  function handlePresentationTap(event) {
+    const clientX = typeof event.clientX === "number" ? event.clientX : window.innerWidth / 2;
+    const leftCutoff = window.innerWidth * 0.34;
+    const rightCutoff = window.innerWidth * 0.66;
+
+    if (clientX <= leftCutoff) {
+      move(-1);
+      return;
+    }
+
+    if (clientX >= rightCutoff) {
+      move(1);
+      return;
+    }
+
+    const entry = getSelectedEntries()[presentationIndex];
+    if (entry) {
+      speakSentenceById(entry.id, slide);
+    }
   }
 
   return { open };
