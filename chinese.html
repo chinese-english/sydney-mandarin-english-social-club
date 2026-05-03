@@ -68,6 +68,11 @@
               <p class="eyebrow">Chinese prep</p>
               <h1 class="prep-title">Prepare your Chinese lines.</h1>
               <p class="prep-note">For English speakers practising Chinese. Pick your lines, fill in your details, tap a sentence to hear it, then use Full screen at the meetup.</p>
+              <div class="prep-quickstart" aria-label="How to use this page">
+                <div class="quick-step"><strong>1</strong><span>Add lines</span></div>
+                <div class="quick-step"><strong>2</strong><span>Fill your details</span></div>
+                <div class="quick-step"><strong>3</strong><span>Use Full screen</span></div>
+              </div>
             </div>
           </div>
         </section>
@@ -101,6 +106,7 @@
                   <input id="speechRateInput" type="range" min="0.5" max="1.15" step="0.05" value="0.75" />
                   <strong id="speechRateValue">Slower</strong>
                 </label>
+                <p class="prep-toolbar-note">Tap any sentence to hear it.</p>
                 <div class="prep-toolbar-actions">
                   <button class="mini-button" id="restoreHiddenButton" type="button">Show hidden</button>
                 </div>
@@ -111,7 +117,11 @@
             <aside class="prep-sidebar">
               <div class="builder-card output-card">
                 <div class="builder-card-head">
-                  <h3>Your lines</h3>
+                  <div>
+                    <h3>Your lines</h3>
+                    <p>These are the lines you will use at the meetup.</p>
+                  </div>
+                  <span class="count-badge" id="selectedCountBadge">0</span>
                 </div>
 
                 <div class="output-actions">
@@ -128,7 +138,11 @@
 
               <div class="builder-card archive-card">
                 <div class="builder-card-head">
-                  <h3>Earlier meetups</h3>
+                  <div>
+                    <h3>Earlier meetups</h3>
+                    <p>Your past saved practice sets.</p>
+                  </div>
+                  <span class="count-badge" id="archivedCountBadge">0</span>
                 </div>
                 <div class="archived-sessions" id="archivedSessions"></div>
               </div>

@@ -28,6 +28,8 @@ const dom = {
   levelSections: document.getElementById("levelSections"),
   selectedStack: document.getElementById("selectedStack"),
   archivedSessions: document.getElementById("archivedSessions"),
+  selectedCountBadge: document.getElementById("selectedCountBadge"),
+  archivedCountBadge: document.getElementById("archivedCountBadge"),
   restoreHiddenButton: document.getElementById("restoreHiddenButton"),
   speechRateInput: document.getElementById("speechRateInput"),
   speechRateValue: document.getElementById("speechRateValue"),
@@ -321,8 +323,13 @@ function rerenderPreviewContent() {
 }
 
 function renderSelectedStack() {
+  const entries = getSelectedEntries();
+  if (dom.selectedCountBadge) {
+    dom.selectedCountBadge.textContent = String(entries.length);
+  }
+
   dom.selectedStack.innerHTML = renderSelectedStackHtml({
-    entries: getSelectedEntries(),
+    entries,
     mode,
     templateHelpers,
     removable: true,
@@ -335,8 +342,13 @@ function renderArchivedSessions() {
     return;
   }
 
+  const sessions = store.getArchivedSessions();
+  if (dom.archivedCountBadge) {
+    dom.archivedCountBadge.textContent = String(sessions.length);
+  }
+
   dom.archivedSessions.innerHTML = renderArchivedSessionsHtml({
-    sessions: store.getArchivedSessions(),
+    sessions,
     mode,
     getEntriesForSession: getSelectedEntries,
     templateHelpers,

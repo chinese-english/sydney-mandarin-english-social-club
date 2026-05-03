@@ -1185,6 +1185,38 @@ html[data-theme="dark"] .theme-toggle:focus-visible {
   max-width: 60ch;
 }
 
+.prep-quickstart {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.quick-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 14px 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(24, 21, 17, 0.08);
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.quick-step strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(243, 106, 45, 0.14);
+  color: var(--accent-deep);
+}
+
 .prep-main {
   display: grid;
   gap: 16px;
@@ -1231,6 +1263,10 @@ html[data-theme="dark"] .theme-toggle:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.48);
 }
 
 .speed-control {
@@ -1241,6 +1277,13 @@ html[data-theme="dark"] .theme-toggle:focus-visible {
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.prep-toolbar-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .speed-control span {
@@ -1347,11 +1390,17 @@ html[data-theme="dark"] .theme-toggle:focus-visible {
 
 .sentence-card {
   padding: 18px;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .sentence-card.is-selected {
   border-color: rgba(243, 106, 45, 0.42);
   box-shadow: 0 10px 24px rgba(243, 106, 45, 0.12);
+}
+
+.sentence-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(32, 22, 16, 0.08);
 }
 
 .sentence-card-head,
@@ -1511,6 +1560,20 @@ html[data-theme="dark"] .theme-toggle:focus-visible {
 
 .selected-card {
   padding: 16px;
+}
+
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.2rem;
+  height: 2.2rem;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(243, 106, 45, 0.14);
+  color: var(--accent-deep);
+  font-size: 0.84rem;
+  font-weight: 800;
 }
 
 .selected-card p {
