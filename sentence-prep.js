@@ -26,6 +26,8 @@ const dom = {
   levelSections: document.getElementById("levelSections"),
   selectedStack: document.getElementById("selectedStack"),
   restoreHiddenButton: document.getElementById("restoreHiddenButton"),
+  speechRateInput: document.getElementById("speechRateInput"),
+  speechRateValue: document.getElementById("speechRateValue"),
   copyPracticeButton: document.getElementById("copyPracticeButton"),
   copyBilingualButton: document.getElementById("copyBilingualButton"),
   presentationModeButton: document.getElementById("presentationModeButton"),
@@ -68,6 +70,7 @@ bindStaticEvents();
 function loadState() {
   const defaults = {
     profile: {},
+    speechRate: 0.75,
     pages: {
       english: { selected: [], hidden: [] },
       mandarin: { selected: [], hidden: [] },
@@ -83,6 +86,7 @@ function loadState() {
     const parsed = JSON.parse(raw);
     return {
       profile: parsed.profile || {},
+      speechRate: normalizeSpeechRate(parsed.speechRate),
       pages: {
         english: normalizePageState(parsed.pages && parsed.pages.english),
         mandarin: normalizePageState(parsed.pages && parsed.pages.mandarin),
@@ -100,11 +104,31 @@ function normalizePageState(page) {
   };
 }
 
+function normalizeSpeechRate(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return 0.75;
+  }
+
+  return Math.max(0.5, Math.min(1.15, numeric));
+}
+
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
 function bindStaticEvents() {
+  if (dom.speechRateInput) {
+    dom.speechRateInput.value = String(state.speechRate);
+    updateSpeechRateLabel();
+    dom.speechRateInput.addEventListener("input", function () {
+      state.speechRate = normalizeSpeechRate(dom.speechRateInput.value);
+      dom.speechRateInput.value = String(state.speechRate);
+      updateSpeechRateLabel();
+      saveState();
+    });
+  }
+
   if (dom.restoreHiddenButton) {
     dom.restoreHiddenButton.addEventListener("click", function () {
       state.pages[mode].hidden = [];
@@ -142,6 +166,12 @@ function bindStaticEvents() {
       renderSentenceControls();
       flashButton(dom.clearSelectionsButton, "Cleared");
     });
+  }
+}
+
+function updateSpeechRateLabel() {
+  if (dom.speechRateValue) {
+    dom.speechRateValue.textContent = `${state.speechRate.toFixed(2)}x`;
   }
 }
 
@@ -501,7 +531,7 @@ function speakPhrase(text, language, sourceElement) {
   speechController.speak({
     text,
     language,
-    rate: language.startsWith("zh") ? 0.85 : 0.95,
+    rate: state.speechRate,
     highlightRoot: findSpeechHighlightRoot(sourceElement),
   });
 }
