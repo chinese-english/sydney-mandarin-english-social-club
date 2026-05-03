@@ -53,7 +53,7 @@ export function createTemplateHelpers({ getState, mode }) {
   }
 
   function renderSpeechText(template, language) {
-    const units = buildSpeechUnits(template, language, resolveToken);
+    const units = buildSpeechUnits(template, language, resolveSpeechToken);
     return {
       text: units.map(function (unit) {
         return unit.text;
@@ -75,26 +75,12 @@ export function createTemplateHelpers({ getState, mode }) {
 
   function resolveToken(token) {
     const state = getState();
-    const dynamic = {
-      target_language_en: mode === "english" ? "English" : "Mandarin",
-      target_language_zh: mode === "english" ? "英文" : "中文",
-      target_language_pinyin: mode === "english" ? "Yīngwén" : "Zhōngwén",
-    };
+    return resolveTokenValue(state, token, false, mode);
+  }
 
-    if (Object.prototype.hasOwnProperty.call(dynamic, token)) {
-      return dynamic[token];
-    }
-
-    if (Object.prototype.hasOwnProperty.call(state.profile, token) && state.profile[token].trim()) {
-      return state.profile[token].trim();
-    }
-
-    const separator = token.lastIndexOf("_");
-    if (separator === -1) {
-      return "___";
-    }
-
-    return fallbackValue(state, token.slice(0, separator), token.slice(separator + 1));
+  function resolveSpeechToken(token) {
+    const state = getState();
+    return resolveTokenValue(state, token, true, mode);
   }
 
   return {
@@ -166,7 +152,30 @@ function tokenizeSpeech(text, language) {
   });
 }
 
-function fallbackValue(state, base, variant) {
+function resolveTokenValue(state, token, emptyOnMissing, mode) {
+  const dynamic = {
+    target_language_en: mode === "english" ? "English" : "Mandarin",
+    target_language_zh: mode === "english" ? "英文" : "中文",
+    target_language_pinyin: mode === "english" ? "Yīngwén" : "Zhōngwén",
+  };
+
+  if (Object.prototype.hasOwnProperty.call(dynamic, token)) {
+    return dynamic[token];
+  }
+
+  if (Object.prototype.hasOwnProperty.call(state.profile, token) && state.profile[token].trim()) {
+    return state.profile[token].trim();
+  }
+
+  const separator = token.lastIndexOf("_");
+  if (separator === -1) {
+    return emptyOnMissing ? "" : "___";
+  }
+
+  return fallbackValue(state, token.slice(0, separator), token.slice(separator + 1), emptyOnMissing);
+}
+
+function fallbackValue(state, base, variant, emptyOnMissing) {
   if (variant === "zh") {
     const direct = state.profile[`${base}_zh`];
     if (direct && direct.trim()) {
@@ -183,7 +192,7 @@ function fallbackValue(state, base, variant) {
       return englishFallback.trim();
     }
 
-    return "___";
+    return emptyOnMissing ? "" : "___";
   }
 
   const attempts =
@@ -198,7 +207,7 @@ function fallbackValue(state, base, variant) {
     }
   }
 
-  return "___";
+  return emptyOnMissing ? "" : "___";
 }
 
 export function transliterateNamePinyinToHanzi(input) {
