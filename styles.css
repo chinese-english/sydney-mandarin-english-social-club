@@ -316,11 +316,14 @@ h2 {
 .panel-card,
 .session-preview,
 .intro-card,
+.story-card,
 .timeline-step,
 .principle,
 .manifesto-grid article,
 .chapter-card,
 .material-card,
+.benefit-card,
+.faq-card,
 .open-card,
 .cta,
 .site-footer {
@@ -422,11 +425,14 @@ h2 {
 }
 
 .intro-card,
+.story-card,
 .timeline-step,
 .principle,
 .manifesto-grid article,
 .chapter-card,
 .material-card,
+.benefit-card,
+.faq-card,
 .open-card {
   padding: 24px;
   border-radius: var(--radius-lg);
@@ -447,6 +453,40 @@ h2 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+}
+
+.story-grid,
+.benefits-grid,
+.faq-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.story-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.story-card h3,
+.benefit-card h3,
+.faq-card h3 {
+  margin-top: 0;
+}
+
+.quote-banner {
+  margin-top: 18px;
+  padding: 26px 28px;
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, rgba(243, 106, 45, 0.14), rgba(255, 255, 255, 0.72));
+  border: 1px solid var(--line);
+}
+
+.quote-banner p {
+  margin: 0;
+  max-width: 28ch;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 0.98;
 }
 
 .timeline-step {
@@ -479,6 +519,23 @@ h2 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-top: 18px;
+}
+
+.benefits-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.benefit-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: rgba(45, 127, 113, 0.1);
+  color: var(--jade);
+  font-weight: 800;
 }
 
 .principle strong,
@@ -594,6 +651,10 @@ h2 {
 }
 
 .materials-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.faq-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -744,6 +805,9 @@ h2 {
 
   .timeline,
   .principles-grid,
+  .story-grid,
+  .benefits-grid,
+  .faq-grid,
   .chapter-checklist,
   .open-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -789,6 +853,9 @@ h2 {
 
   .timeline,
   .principles-grid,
+  .story-grid,
+  .benefits-grid,
+  .faq-grid,
   .chapter-checklist,
   .open-grid {
     grid-template-columns: 1fr;
