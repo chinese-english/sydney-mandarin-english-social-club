@@ -450,6 +450,31 @@ h2 {
   gap: 18px;
 }
 
+.prep-split-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.prep-split-card {
+  padding: 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 248, 239, 0.82));
+}
+
+.prep-split-card h2 {
+  margin-bottom: 10px;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.prep-split-card p:last-of-type {
+  margin-bottom: 20px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .intro-card,
 .story-card,
 .timeline-step,
@@ -1446,6 +1471,7 @@ h2 {
 
   .site-header,
   .intro-grid,
+  .prep-split-grid,
   .manifesto-grid,
   .chapter-grid,
   .materials-grid,
