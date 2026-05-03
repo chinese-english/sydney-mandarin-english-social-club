@@ -7,9 +7,9 @@ This repository stores the core description and operating notes for the Sydney M
 The repository includes a static website:
 
 - `index.html`: attendee-focused homepage
-- `phrase-builder.html`: browser-based phrase builder for meetup preparation
-- `phrase-builder.js`: client-side phrase generation and local saving
-- `start-a-chapter.html`: separate organiser page for replication and scaling
+- `english.html`: interactive English preparation page
+- `mandarin.html`: interactive Mandarin preparation page
+- `sentence-prep.js`: shared sentence selection, persistence, and rendering logic
 - `styles.css`: shared styling
 
 Open `index.html` in a browser to view the main landing page.
@@ -91,12 +91,10 @@ By joining, participants can:
 
 - `README.md`: club overview and positioning
 - `index.html`: attendee-facing website landing page
-- `phrase-builder.html`: interactive phrase builder for learners
-- `phrase-builder.js`: phrase-builder logic and local browser persistence
-- `start-a-chapter.html`: organiser page for starting chapters in other cities
+- `english.html`: interactive English sentence-prep page
+- `mandarin.html`: interactive Mandarin sentence-prep page
+- `sentence-prep.js`: shared prep-page logic and local browser persistence
 - `styles.css`: website styling
 - `LICENSE.md`: plain-language free-use note for the model and materials
-- `docs/chapter-playbook.md`: starter guide for organisers
-- `docs/meetup-format.md`: repeatable meetup structure and topic ideas
 - `content/source-brief.md`: preserved original source copy
 - `sessions/example-introducing-yourself.md`: sample meetup session with prompts, flow, and venue details

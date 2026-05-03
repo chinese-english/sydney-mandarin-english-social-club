@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>English Prep | Sydney Mandarin and English Social Club</title>
+    <meta
+      name="description"
+      content="Prepare your English practice script before the meetup. Choose your level, select sentences, fill in your details, and save your stack locally."
+    />
+    <meta name="theme-color" content="#f36a2d" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=Sora:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-prep-mode="english">
+    <div class="background-orb orb-one"></div>
+    <div class="background-orb orb-two"></div>
+    <div class="background-mesh"></div>
+
+    <div class="site-wrap">
+      <header class="site-header">
+        <a class="brand" href="index.html" aria-label="Return to homepage">
+          <span class="brand-mark">ME</span>
+          <span class="brand-copy">
+            <strong>Sydney Mandarin and English Social Club</strong>
+            <span>English preparation page</span>
+          </span>
+        </a>
+
+        <nav class="site-nav" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="english.html">English</a>
+          <a href="mandarin.html">Mandarin</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero reveal">
+          <div class="hero-copy">
+            <p class="eyebrow">English preparation</p>
+            <h1>Build your English script before you speak to anyone.</h1>
+            <p class="hero-text">
+              Choose your level, fill in your details, hide the lines you do not want, and stack the ones you do want. Your preparation stays saved on this device for next time.
+            </p>
+
+            <div class="hero-actions">
+              <a class="button button-primary" href="#prep-app">Start building</a>
+              <a class="button button-secondary" href="mandarin.html">Open Mandarin page</a>
+            </div>
+
+            <div class="meetup-note">
+              <span class="meetup-label">Current meetup</span>
+              <p>Every Wednesday night, 7-8pm, in and around central Sydney. Locations may vary.</p>
+            </div>
+          </div>
+
+          <aside class="hero-panel">
+            <div class="panel-card panel-card-primary">
+              <p class="panel-label">What this page does</p>
+              <ul class="panel-list">
+                <li>Shows English, Mandarin, and pinyin together</li>
+                <li>Lets you choose only the lines you want to practise</li>
+                <li>Lets you fill in your own facts and reuse them across sentences</li>
+                <li>Saves your stack locally so it is still there next time</li>
+              </ul>
+            </div>
+          </aside>
+        </section>
+
+        <section class="section reveal" id="prep-app">
+          <div class="section-heading">
+            <p class="eyebrow">Prep tool</p>
+            <h2>Select your level, then build your script.</h2>
+          </div>
+
+          <div class="prep-layout">
+            <section class="prep-main">
+              <div class="prep-toolbar">
+                <div class="level-links" id="levelLinks"></div>
+                <div class="prep-toolbar-actions">
+                  <button class="mini-button" id="restoreHiddenButton" type="button">Restore hidden</button>
+                </div>
+              </div>
+              <div id="levelSections"></div>
+            </section>
+
+            <aside class="prep-sidebar">
+              <div class="builder-card output-card">
+                <div class="builder-card-head">
+                  <h3>Your selected English stack</h3>
+                  <p>Copy the lines you want to use in Slack or at the meetup.</p>
+                </div>
+
+                <div class="output-actions">
+                  <button class="button button-primary output-button" id="copyPracticeButton" type="button">Copy practice stack</button>
+                  <button class="button button-secondary output-button" id="copyBilingualButton" type="button">Copy bilingual stack</button>
+                  <button class="button button-secondary output-button" id="clearSelectionsButton" type="button">Clear selections</button>
+                </div>
+
+                <div class="storage-note">Saved locally in your browser on this device.</div>
+
+                <div class="script-block">
+                  <p class="script-label">Slack-ready text</p>
+                  <textarea id="practiceDraft" class="script-area" readonly></textarea>
+                </div>
+
+                <div class="selected-stack" id="selectedStack"></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="sentence-prep.js"></script>
+  </body>
+</html>

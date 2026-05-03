@@ -880,6 +880,221 @@ h2 {
   gap: 5px;
 }
 
+.prep-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.prep-main {
+  display: grid;
+  gap: 16px;
+}
+
+.prep-sidebar {
+  position: sticky;
+  top: 16px;
+}
+
+.prep-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.level-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.level-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  border: 1px solid rgba(24, 21, 17, 0.1);
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.level-chip.is-active {
+  background: linear-gradient(135deg, var(--accent), #ff8a52);
+  border-color: transparent;
+  color: white;
+}
+
+.level-section {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 252, 247, 0.78);
+  overflow: hidden;
+}
+
+.level-section + .level-section {
+  margin-top: 14px;
+}
+
+.level-section summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 20px 22px;
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.level-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.level-section summary strong {
+  display: block;
+  font-size: 1.08rem;
+}
+
+.level-section summary span,
+.empty-level,
+.empty-stack,
+.sentence-card-head p,
+.selected-support {
+  color: var(--muted);
+}
+
+.level-section-body {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+}
+
+.empty-level,
+.empty-stack {
+  margin: 0;
+  padding: 16px;
+}
+
+.sentence-card,
+.selected-card {
+  border: 1px solid rgba(24, 21, 17, 0.1);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.sentence-card {
+  padding: 18px;
+}
+
+.sentence-card.is-selected {
+  border-color: rgba(243, 106, 45, 0.42);
+  box-shadow: 0 10px 24px rgba(243, 106, 45, 0.12);
+}
+
+.sentence-card-head,
+.selected-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.sentence-card-head h3,
+.selected-card-head h4 {
+  margin: 0 0 4px;
+}
+
+.sentence-card-head p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.sentence-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.select-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(24, 21, 17, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.sentence-preview {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.preview-line {
+  display: grid;
+  gap: 4px;
+}
+
+.preview-line p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.preview-target p {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.preview-target-secondary p {
+  color: var(--jade);
+}
+
+.sentence-fields {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(24, 21, 17, 0.08);
+}
+
+.sentence-field-group {
+  display: grid;
+  gap: 10px;
+}
+
+.sentence-field-title {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.sentence-field-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.selected-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.selected-card {
+  padding: 16px;
+}
+
+.selected-card p {
+  margin: 10px 0 0;
+  line-height: 1.65;
+}
+
 .material-type {
   color: var(--jade);
 }
@@ -1019,6 +1234,7 @@ h2 {
   .hero,
   .network-layout,
   .builder-layout,
+  .prep-layout,
   .cta,
   .organiser-callout {
     grid-template-columns: 1fr;
@@ -1034,6 +1250,10 @@ h2 {
   .chapter-checklist,
   .open-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prep-sidebar {
+    position: static;
   }
 }
 
@@ -1081,6 +1301,7 @@ h2 {
   .benefits-grid,
   .faq-grid,
   .field-grid,
+  .sentence-field-inputs,
   .chapter-checklist,
   .open-grid {
     grid-template-columns: 1fr;
@@ -1094,6 +1315,7 @@ h2 {
     position: static;
   }
 
+  .prep-toolbar,
   .generated-head {
     align-items: flex-start;
     flex-direction: column;
