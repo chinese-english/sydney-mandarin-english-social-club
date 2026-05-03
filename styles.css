@@ -245,6 +245,32 @@ h2 {
   margin-top: 28px;
 }
 
+.meetup-note {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(24, 21, 17, 0.08);
+}
+
+.meetup-label {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+
+.meetup-note p,
+.cta-subtext {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
