@@ -1081,6 +1081,15 @@ h2 {
   line-height: 1.7;
 }
 
+.injected-value {
+  display: inline-block;
+  padding: 0.04em 0.3em;
+  border-radius: 0.45em;
+  background: rgba(243, 106, 45, 0.18);
+  color: var(--accent-deep);
+  font-weight: 700;
+}
+
 .preview-target p {
   font-weight: 700;
   color: var(--ink);
@@ -1236,6 +1245,12 @@ h2 {
 
 .presentation-pinyin {
   color: #ffd7bf;
+}
+
+.presentation-main .injected-value,
+.presentation-support .injected-value {
+  background: rgba(255, 164, 120, 0.2);
+  color: #fff3e9;
 }
 
 .presentation-support.is-hidden {

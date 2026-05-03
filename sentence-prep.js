@@ -740,20 +740,23 @@
     const english = fillTemplate(entry.english);
     const mandarin = fillTemplate(entry.mandarin);
     const pinyin = fillTemplate(entry.pinyin);
+    const englishHtml = renderTemplateHtml(entry.english);
+    const mandarinHtml = renderTemplateHtml(entry.mandarin);
+    const pinyinHtml = renderTemplateHtml(entry.pinyin);
 
     if (mode === "english") {
       return `
         <div class="preview-line preview-target">
           <span class="generated-label">English</span>
-          <p>${escapeHtml(english)}</p>
+          <p>${englishHtml}</p>
         </div>
         <div class="preview-line">
           <span class="generated-label">Mandarin</span>
-          <p>${escapeHtml(mandarin)}</p>
+          <p>${mandarinHtml}</p>
         </div>
         <div class="preview-line">
           <span class="generated-label">Pinyin</span>
-          <p>${escapeHtml(pinyin)}</p>
+          <p>${pinyinHtml}</p>
         </div>
       `;
     }
@@ -761,15 +764,15 @@
     return `
       <div class="preview-line preview-target">
         <span class="generated-label">Mandarin</span>
-        <p>${escapeHtml(mandarin)}</p>
+        <p>${mandarinHtml}</p>
       </div>
       <div class="preview-line preview-target-secondary">
         <span class="generated-label">Pinyin</span>
-        <p>${escapeHtml(pinyin)}</p>
+        <p>${pinyinHtml}</p>
       </div>
       <div class="preview-line">
         <span class="generated-label">English</span>
-        <p>${escapeHtml(english)}</p>
+        <p>${englishHtml}</p>
       </div>
     `;
   }
@@ -923,6 +926,9 @@
               const english = fillTemplate(entry.english);
               const mandarin = fillTemplate(entry.mandarin);
               const pinyin = fillTemplate(entry.pinyin);
+              const englishHtml = renderTemplateHtml(entry.english);
+              const mandarinHtml = renderTemplateHtml(entry.mandarin);
+              const pinyinHtml = renderTemplateHtml(entry.pinyin);
               return `
                 <article class="selected-card">
                   <div class="selected-card-head">
@@ -932,14 +938,14 @@
                   ${
                     mode === "english"
                       ? `
-                        <p>${escapeHtml(english)}</p>
-                        <p class="selected-support">${escapeHtml(mandarin)}</p>
-                        <p class="selected-support">${escapeHtml(pinyin)}</p>
+                        <p>${englishHtml}</p>
+                        <p class="selected-support">${mandarinHtml}</p>
+                        <p class="selected-support">${pinyinHtml}</p>
                       `
                       : `
-                        <p>${escapeHtml(mandarin)}</p>
-                        <p class="selected-support">${escapeHtml(pinyin)}</p>
-                        <p class="selected-support">${escapeHtml(english)}</p>
+                        <p>${mandarinHtml}</p>
+                        <p class="selected-support">${pinyinHtml}</p>
+                        <p class="selected-support">${englishHtml}</p>
                       `
                   }
                 </article>
@@ -992,6 +998,18 @@
   function fillTemplate(template) {
     return template.replace(/\{([a-z_]+)\}/g, function (_match, token) {
       return resolveToken(token);
+    });
+  }
+
+  function renderTemplateHtml(template) {
+    return template.replace(/\{([a-z_]+)\}/g, function (_match, token) {
+      const value = resolveToken(token);
+      const isUserValue = !token.startsWith("target_language_");
+      if (!isUserValue) {
+        return escapeHtml(value);
+      }
+
+      return `<span class="injected-value">${escapeHtml(value)}</span>`;
     });
   }
 
@@ -1411,25 +1429,28 @@
     const english = fillTemplate(entry.english);
     const mandarin = fillTemplate(entry.mandarin);
     const pinyin = fillTemplate(entry.pinyin);
+    const englishHtml = renderTemplateHtml(entry.english);
+    const mandarinHtml = renderTemplateHtml(entry.mandarin);
+    const pinyinHtml = renderTemplateHtml(entry.pinyin);
     const supportMarkup =
       mode === "english"
         ? `
-          <div class="presentation-support ${presentationShowSupport ? "" : "is-hidden"}">${escapeHtml(mandarin)}</div>
-          <div class="presentation-support presentation-pinyin ${presentationShowSupport ? "" : "is-hidden"}">${escapeHtml(pinyin)}</div>
+          <div class="presentation-support ${presentationShowSupport ? "" : "is-hidden"}">${mandarinHtml}</div>
+          <div class="presentation-support presentation-pinyin ${presentationShowSupport ? "" : "is-hidden"}">${pinyinHtml}</div>
         `
         : `
-          <div class="presentation-support presentation-pinyin ${presentationShowSupport ? "" : "is-hidden"}">${escapeHtml(pinyin)}</div>
-          <div class="presentation-support ${presentationShowSupport ? "" : "is-hidden"}">${escapeHtml(english)}</div>
+          <div class="presentation-support presentation-pinyin ${presentationShowSupport ? "" : "is-hidden"}">${pinyinHtml}</div>
+          <div class="presentation-support ${presentationShowSupport ? "" : "is-hidden"}">${englishHtml}</div>
         `;
 
     slide.innerHTML =
       mode === "english"
         ? `
-          <div class="presentation-main">${escapeHtml(english)}</div>
+          <div class="presentation-main">${englishHtml}</div>
           ${supportMarkup}
         `
         : `
-          <div class="presentation-main">${escapeHtml(mandarin)}</div>
+          <div class="presentation-main">${mandarinHtml}</div>
           ${supportMarkup}
         `;
 
