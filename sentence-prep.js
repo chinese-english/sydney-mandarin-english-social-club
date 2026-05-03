@@ -626,22 +626,28 @@
   }
 
   function bindStaticEvents() {
-    restoreHiddenButton.addEventListener("click", function () {
-      state.pages[mode].hidden = [];
-      saveState();
-      render();
-      flashButton(restoreHiddenButton, "Restored");
-    });
+    if (restoreHiddenButton) {
+      restoreHiddenButton.addEventListener("click", function () {
+        state.pages[mode].hidden = [];
+        saveState();
+        render();
+        flashButton(restoreHiddenButton, "Restored");
+      });
+    }
 
-    copyPracticeButton.addEventListener("click", function () {
-      copyText(buildPracticeDraft());
-      flashButton(copyPracticeButton, "Copied");
-    });
+    if (copyPracticeButton) {
+      copyPracticeButton.addEventListener("click", function () {
+        copyText(buildPracticeDraft());
+        flashButton(copyPracticeButton, "Copied");
+      });
+    }
 
-    copyBilingualButton.addEventListener("click", function () {
-      copyText(buildBilingualDraft());
-      flashButton(copyBilingualButton, "Copied");
-    });
+    if (copyBilingualButton) {
+      copyBilingualButton.addEventListener("click", function () {
+        copyText(buildBilingualDraft());
+        flashButton(copyBilingualButton, "Copied");
+      });
+    }
 
     if (presentationModeButton) {
       presentationModeButton.addEventListener("click", function () {
@@ -649,13 +655,15 @@
       });
     }
 
-    clearSelectionsButton.addEventListener("click", function () {
-      state.pages[mode].selected = [];
-      saveState();
-      renderSelectedStack();
-      renderSentenceControls();
-      flashButton(clearSelectionsButton, "Cleared");
-    });
+    if (clearSelectionsButton) {
+      clearSelectionsButton.addEventListener("click", function () {
+        state.pages[mode].selected = [];
+        saveState();
+        renderSelectedStack();
+        renderSentenceControls();
+        flashButton(clearSelectionsButton, "Cleared");
+      });
+    }
   }
 
   function render() {
@@ -665,16 +673,9 @@
   }
 
   function renderLevelLinks() {
-    const page = mode === "english" ? "english.html" : "chinese.html";
-    const links = [
-      `<a class="level-chip ${viewLevel ? "" : "is-active"}" href="${page}">All levels</a>`,
-      ...LEVELS.map((level) => {
-        const active = viewLevel === level.id ? "is-active" : "";
-        return `<a class="level-chip ${active}" href="${page}?level=${level.id}">${level.label}</a>`;
-      }),
-    ];
-
-    levelLinksEl.innerHTML = links.join("");
+    if (levelLinksEl) {
+      levelLinksEl.innerHTML = "";
+    }
   }
 
   function renderLevelSections() {
@@ -722,14 +723,14 @@
               <input type="checkbox" data-action="select" data-sentence-id="${entry.id}" ${selected ? "checked" : ""} />
               <span>${selected ? "Selected" : "Select"}</span>
             </label>
-            <button class="mini-button" type="button" data-action="speak" data-sentence-id="${entry.id}">Hear</button>
+            <button class="mini-button" type="button" data-action="speak" data-sentence-id="${entry.id}" aria-label="Hear this sentence">🔊</button>
             <button class="mini-button" type="button" data-action="hide" data-sentence-id="${entry.id}">Hide</button>
           </div>
         </div>
 
-        <div class="sentence-preview">
+        <button class="sentence-preview sentence-preview-button" type="button" data-action="speak" data-sentence-id="${entry.id}" aria-label="Hear this sentence">
           ${rendered}
-        </div>
+        </button>
 
         ${fields ? `<div class="sentence-fields">${fields}</div>` : ""}
       </article>
@@ -917,7 +918,9 @@
       .map((id) => SENTENCES.find((entry) => entry.id === id))
       .filter(Boolean);
 
-    practiceDraftEl.value = buildPracticeDraft(selectedEntries);
+    if (practiceDraftEl) {
+      practiceDraftEl.value = buildPracticeDraft(selectedEntries);
+    }
     selectedStackEl.innerHTML =
       selectedEntries.length === 0
         ? `<p class="empty-stack">Nothing selected yet. Add the lines you want to practise.</p>`
@@ -1302,7 +1305,7 @@
           <div class="presentation-counter" id="presentationCounter">0 / 0</div>
           <div class="presentation-topbar-actions">
             <button class="presentation-toggle" type="button" id="presentationToggleSupportButton">Hide support</button>
-            <button class="presentation-close" type="button" aria-label="Close presentation mode">Close</button>
+            <button class="presentation-close" type="button" aria-label="Close presentation mode">×</button>
           </div>
         </div>
         <div class="presentation-stage">

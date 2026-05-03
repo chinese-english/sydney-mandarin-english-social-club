@@ -46,30 +46,18 @@
             <div>
               <p class="eyebrow">English prep</p>
               <h1 class="prep-title">Prepare your English lines.</h1>
+              <p class="prep-note">For Chinese speakers practising English.</p>
             </div>
             <div class="prep-header-actions">
-              <a class="button button-primary" href="#prep-app">Go to sentences</a>
               <a class="button button-secondary" href="chinese.html">Chinese page</a>
             </div>
-          </div>
-          <div class="prep-meta">
-            <p>For Chinese speakers preparing to speak English at the meetup.</p>
-            <p>Choose a level, fill in your details, select the lines you want, and use presentation mode at the meetup.</p>
-            <p>If English is the language you want to practise, this is the correct page.</p>
-            <p>Saved locally on this device.</p>
           </div>
         </section>
 
         <section class="section reveal" id="prep-app">
-          <div class="section-heading">
-            <p class="eyebrow">Prep tool</p>
-            <h2>Select your level, then build your script.</h2>
-          </div>
-
           <div class="prep-layout">
             <section class="prep-main">
               <div class="prep-toolbar">
-                <div class="level-links" id="levelLinks"></div>
                 <div class="prep-toolbar-actions">
                   <button class="mini-button" id="restoreHiddenButton" type="button">Restore hidden</button>
                 </div>
@@ -80,22 +68,16 @@
             <aside class="prep-sidebar">
               <div class="builder-card output-card">
                 <div class="builder-card-head">
-                  <h3>Your selected English stack</h3>
-                  <p>Copy the lines you want to use in Slack or at the meetup.</p>
+                  <h3>Selected</h3>
                 </div>
 
                 <div class="output-actions">
-                  <button class="button button-primary output-button" id="copyPracticeButton" type="button">Copy practice stack</button>
-                  <button class="button button-secondary output-button" id="copyBilingualButton" type="button">Copy bilingual stack</button>
-                  <button class="button button-secondary output-button" id="presentationModeButton" type="button">Presentation mode</button>
-                  <button class="button button-secondary output-button" id="clearSelectionsButton" type="button">Clear selections</button>
-                </div>
-
-                <div class="storage-note">Saved locally in your browser on this device.</div>
-
-                <div class="script-block">
-                  <p class="script-label">Slack-ready text</p>
-                  <textarea id="practiceDraft" class="script-area" readonly></textarea>
+                  <button class="button button-primary output-button output-button-main" id="presentationModeButton" type="button">Presentation</button>
+                  <div class="output-utility-actions" aria-label="Utilities">
+                    <button class="utility-button" id="copyPracticeButton" type="button" aria-label="Copy practice stack" title="Copy practice stack">⎘</button>
+                    <button class="utility-button" id="copyBilingualButton" type="button" aria-label="Copy bilingual stack" title="Copy bilingual stack">文</button>
+                    <button class="utility-button" id="clearSelectionsButton" type="button" aria-label="Clear selections" title="Clear selections">×</button>
+                  </div>
                 </div>
 
                 <div class="selected-stack" id="selectedStack"></div>

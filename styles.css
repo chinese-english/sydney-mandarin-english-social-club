@@ -831,13 +831,13 @@ h2 {
 
 .output-card {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .output-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
 }
 
 .output-button {
@@ -845,20 +845,39 @@ h2 {
   font: inherit;
 }
 
-.storage-note {
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(45, 127, 113, 0.08);
+.output-button-main {
+  flex: 1 1 auto;
 }
 
-.script-block {
-  display: grid;
+.output-utility-actions {
+  display: flex;
+  flex: 0 0 auto;
   gap: 8px;
 }
 
-.script-area {
-  min-height: 180px;
-  resize: vertical;
+.utility-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(24, 21, 17, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.utility-button:hover,
+.utility-button:focus-visible {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(243, 106, 45, 0.26);
 }
 
 .generated-list {
@@ -934,16 +953,10 @@ h2 {
   gap: 12px;
 }
 
-.prep-meta {
-  display: grid;
-  gap: 8px;
-  margin-top: 18px;
-}
-
-.prep-meta p {
+.prep-note {
   margin: 0;
   color: var(--muted);
-  line-height: 1.65;
+  line-height: 1.5;
 }
 
 .prep-main {
@@ -959,7 +972,7 @@ h2 {
 .prep-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 14px;
 }
 
@@ -1096,6 +1109,15 @@ h2 {
   margin-top: 16px;
 }
 
+.sentence-preview-button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
 .preview-line {
   display: grid;
   gap: 4px;
@@ -1208,12 +1230,18 @@ h2 {
 }
 
 .presentation-close {
-  padding: 10px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
   color: #fff7ef;
-  font: inherit;
+  font-size: 2rem;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -1528,6 +1556,14 @@ h2 {
   .generated-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .output-actions {
+    flex-wrap: wrap;
+  }
+
+  .output-button-main {
+    width: 100%;
   }
 }
 
