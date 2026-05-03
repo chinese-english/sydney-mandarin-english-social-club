@@ -34,15 +34,15 @@ export function escapeAttribute(value) {
 }
 
 export function createTemplateHelpers({ getState, mode }) {
-  function fillTemplate(template) {
+  function fillTemplate(template, options) {
     return template.replace(/\{([a-z_]+)\}/g, function (_match, token) {
-      return resolveToken(token);
+      return resolveToken(token, options && options.profileOverride);
     });
   }
 
-  function renderTemplateHtml(template) {
+  function renderTemplateHtml(template, options) {
     return template.replace(/\{([a-z_]+)\}/g, function (_match, token) {
-      const value = resolveToken(token);
+      const value = resolveToken(token, options && options.profileOverride);
       const isUserValue = !token.startsWith("target_language_");
       if (!isUserValue) {
         return escapeHtml(value);
@@ -52,8 +52,10 @@ export function createTemplateHelpers({ getState, mode }) {
     });
   }
 
-  function renderSpeechText(template, language) {
-    const units = buildSpeechUnits(template, language, resolveSpeechToken);
+  function renderSpeechText(template, language, options) {
+    const units = buildSpeechUnits(template, language, function (token) {
+      return resolveSpeechToken(token, options && options.profileOverride);
+    });
     return {
       text: units.map(function (unit) {
         return unit.text;
@@ -73,14 +75,14 @@ export function createTemplateHelpers({ getState, mode }) {
     };
   }
 
-  function resolveToken(token) {
+  function resolveToken(token, profileOverride) {
     const state = getState();
-    return resolveTokenValue(state, token, false, mode);
+    return resolveTokenValue(state, token, false, mode, profileOverride);
   }
 
-  function resolveSpeechToken(token) {
+  function resolveSpeechToken(token, profileOverride) {
     const state = getState();
-    return resolveTokenValue(state, token, true, mode);
+    return resolveTokenValue(state, token, true, mode, profileOverride);
   }
 
   return {
@@ -152,7 +154,8 @@ function tokenizeSpeech(text, language) {
   });
 }
 
-function resolveTokenValue(state, token, emptyOnMissing, mode) {
+function resolveTokenValue(state, token, emptyOnMissing, mode, profileOverride) {
+  const profile = profileOverride || state.profile;
   const dynamic = {
     target_language_en: mode === "english" ? "English" : "Mandarin",
     target_language_zh: mode === "english" ? "英文" : "中文",
@@ -163,8 +166,8 @@ function resolveTokenValue(state, token, emptyOnMissing, mode) {
     return dynamic[token];
   }
 
-  if (Object.prototype.hasOwnProperty.call(state.profile, token) && state.profile[token].trim()) {
-    return state.profile[token].trim();
+  if (Object.prototype.hasOwnProperty.call(profile, token) && profile[token].trim()) {
+    return profile[token].trim();
   }
 
   const separator = token.lastIndexOf("_");
@@ -172,22 +175,22 @@ function resolveTokenValue(state, token, emptyOnMissing, mode) {
     return emptyOnMissing ? "" : "___";
   }
 
-  return fallbackValue(state, token.slice(0, separator), token.slice(separator + 1), emptyOnMissing);
+  return fallbackValue(profile, token.slice(0, separator), token.slice(separator + 1), emptyOnMissing);
 }
 
-function fallbackValue(state, base, variant, emptyOnMissing) {
+function fallbackValue(profile, base, variant, emptyOnMissing) {
   if (variant === "zh") {
-    const direct = state.profile[`${base}_zh`];
+    const direct = profile[`${base}_zh`];
     if (direct && direct.trim()) {
       return direct.trim();
     }
 
-    const suggested = transliterateNamePinyinToHanzi(state.profile[`${base}_pinyin`] || "");
+    const suggested = transliterateNamePinyinToHanzi(profile[`${base}_pinyin`] || "");
     if (suggested) {
       return suggested;
     }
 
-    const englishFallback = state.profile[`${base}_en`];
+    const englishFallback = profile[`${base}_en`];
     if (englishFallback && englishFallback.trim()) {
       return englishFallback.trim();
     }
@@ -201,7 +204,7 @@ function fallbackValue(state, base, variant, emptyOnMissing) {
       : [`${base}_pinyin`, `${base}_zh`, `${base}_en`];
 
   for (let i = 0; i < attempts.length; i += 1) {
-    const candidate = state.profile[attempts[i]];
+    const candidate = profile[attempts[i]];
     if (candidate && candidate.trim()) {
       return candidate.trim();
     }

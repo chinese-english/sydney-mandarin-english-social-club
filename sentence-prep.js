@@ -6,6 +6,7 @@ import {
   SENTENCES_BY_MODE,
   STORAGE_KEY,
 } from "./prep-data.js";
+import { renderArchivedSessionsHtml, renderLevelSectionsHtml, renderSelectedStackHtml } from "./prep-render.js";
 import {
   copyText,
   createPresentationController,
@@ -15,6 +16,7 @@ import {
   escapeAttribute,
   flashButton,
 } from "./prep-services.js";
+import { createPrepStore, formatSessionDateLabel } from "./prep-store.js";
 
 const mode = document.body.getAttribute("data-prep-mode");
 
@@ -25,6 +27,7 @@ if (!mode) {
 const dom = {
   levelSections: document.getElementById("levelSections"),
   selectedStack: document.getElementById("selectedStack"),
+  archivedSessions: document.getElementById("archivedSessions"),
   restoreHiddenButton: document.getElementById("restoreHiddenButton"),
   speechRateInput: document.getElementById("speechRateInput"),
   speechRateValue: document.getElementById("speechRateValue"),
@@ -32,25 +35,24 @@ const dom = {
   copyBilingualButton: document.getElementById("copyBilingualButton"),
   presentationModeButton: document.getElementById("presentationModeButton"),
   clearSelectionsButton: document.getElementById("clearSelectionsButton"),
+  sessionTitleInput: document.getElementById("sessionTitleInput"),
+  sessionDateInput: document.getElementById("sessionDateInput"),
+  newSessionButton: document.getElementById("newSessionButton"),
 };
 
 const viewLevel = new URLSearchParams(window.location.search).get("level");
 const sentences = SENTENCES_BY_MODE[mode] || [];
 const inputVariants = INPUT_VARIANTS_BY_MODE[mode] || ["en", "zh", "pinyin"];
-let state = loadState();
+const store = createPrepStore({ mode, storageKey: STORAGE_KEY });
 
 const templateHelpers = createTemplateHelpers({
-  getState: function () {
-    return state;
-  },
+  getState: store.getState,
   mode,
 });
 
 const translationController = createTranslationController({
-  getState: function () {
-    return state;
-  },
-  saveState,
+  getState: store.getState,
+  saveState: store.saveState,
   rerenderPreviewContent,
 });
 
@@ -67,73 +69,28 @@ speechController.prime();
 render();
 bindStaticEvents();
 
-function loadState() {
-  const defaults = {
-    profile: {},
-    speechRate: 0.75,
-    pages: {
-      english: { selected: [], hidden: [] },
-      mandarin: { selected: [], hidden: [] },
-    },
-  };
-
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return defaults;
-  }
-
-  try {
-    const parsed = JSON.parse(raw);
-    return {
-      profile: parsed.profile || {},
-      speechRate: normalizeSpeechRate(parsed.speechRate),
-      pages: {
-        english: normalizePageState(parsed.pages && parsed.pages.english),
-        mandarin: normalizePageState(parsed.pages && parsed.pages.mandarin),
-      },
-    };
-  } catch (_error) {
-    return defaults;
-  }
-}
-
-function normalizePageState(page) {
-  return {
-    selected: Array.isArray(page && page.selected) ? page.selected : [],
-    hidden: Array.isArray(page && page.hidden) ? page.hidden : [],
-  };
-}
-
-function normalizeSpeechRate(value) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return 0.75;
-  }
-
-  return Math.max(0.5, Math.min(1.15, numeric));
-}
-
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
 function bindStaticEvents() {
+  dom.levelSections.addEventListener("change", handleLevelSectionsChange);
+  dom.levelSections.addEventListener("click", handleLevelSectionsClick);
+  dom.levelSections.addEventListener("input", handleLevelSectionsInput);
+  dom.selectedStack.addEventListener("click", handleSelectedStackClick);
+
   if (dom.speechRateInput) {
-    dom.speechRateInput.value = String(state.speechRate);
+    dom.speechRateInput.value = String(store.getSpeechRate());
     updateSpeechRateLabel();
     dom.speechRateInput.addEventListener("input", function () {
-      state.speechRate = normalizeSpeechRate(dom.speechRateInput.value);
-      dom.speechRateInput.value = String(state.speechRate);
+      store.setSpeechRate(dom.speechRateInput.value);
+      dom.speechRateInput.value = String(store.getSpeechRate());
       updateSpeechRateLabel();
-      saveState();
+      store.saveState();
     });
   }
 
   if (dom.restoreHiddenButton) {
     dom.restoreHiddenButton.addEventListener("click", function () {
-      state.pages[mode].hidden = [];
-      saveState();
-      render();
+      store.restoreHidden();
+      store.saveState();
+      renderLevelSections();
       flashButton(dom.restoreHiddenButton, "Restored");
     });
   }
@@ -160,56 +117,77 @@ function bindStaticEvents() {
 
   if (dom.clearSelectionsButton) {
     dom.clearSelectionsButton.addEventListener("click", function () {
-      state.pages[mode].selected = [];
-      saveState();
+      store.clearSelections();
+      store.saveState();
       renderSelectedStack();
-      renderSentenceControls();
+      renderLevelSections();
       flashButton(dom.clearSelectionsButton, "Cleared");
+    });
+  }
+
+  if (dom.sessionTitleInput) {
+    dom.sessionTitleInput.addEventListener("input", function () {
+      store.updateActiveSessionMeta({ title: dom.sessionTitleInput.value });
+      store.saveState();
+    });
+  }
+
+  if (dom.sessionDateInput) {
+    dom.sessionDateInput.addEventListener("change", function () {
+      store.updateActiveSessionMeta({ date: dom.sessionDateInput.value });
+      store.saveState();
+      syncSessionInputs();
+    });
+  }
+
+  if (dom.newSessionButton) {
+    dom.newSessionButton.addEventListener("click", function () {
+      store.startNewSession();
+      store.saveState();
+      render();
+      flashButton(dom.newSessionButton, "Started");
     });
   }
 }
 
 function updateSpeechRateLabel() {
   if (dom.speechRateValue) {
-    dom.speechRateValue.textContent = `${state.speechRate.toFixed(2)}x`;
+    dom.speechRateValue.textContent = `${store.getSpeechRate().toFixed(2)}x`;
   }
 }
 
 function render() {
+  syncSessionInputs();
   renderLevelSections();
   renderSelectedStack();
+  renderArchivedSessions();
+}
+
+function syncSessionInputs() {
+  const session = store.getActiveSession();
+  if (dom.sessionTitleInput) {
+    dom.sessionTitleInput.value = session.title;
+  }
+
+  if (dom.sessionDateInput) {
+    dom.sessionDateInput.value = session.date;
+  }
 }
 
 function renderLevelSections() {
-  const activeLevels = viewLevel ? LEVELS.filter((level) => level.id === viewLevel) : LEVELS;
-  dom.levelSections.innerHTML = activeLevels
-    .map(function (level) {
-      const levelSentences = sentences.filter(function (entry) {
-        return entry.level === level.id && !state.pages[mode].hidden.includes(entry.id);
-      });
-
-      const cards = levelSentences.map(renderSentenceCard).join("");
-      return `
-        <details class="level-section" id="level-${level.id}" open>
-          <summary>
-            <div>
-              <strong>${level.label}</strong>
-              <span>${level.summary}</span>
-            </div>
-          </summary>
-          <div class="level-section-body">
-            ${cards || `<p class="empty-level">All sentences in this level are currently hidden.</p>`}
-          </div>
-        </details>
-      `;
-    })
-    .join("");
-
-  bindDynamicEvents();
+  dom.levelSections.innerHTML = renderLevelSectionsHtml({
+    levels: LEVELS,
+    viewLevel,
+    entries: sentences,
+    selectedIds: new Set(store.getSelectedIds()),
+    hiddenIds: new Set(store.getHiddenIds()),
+    archivedIds: store.getArchivedSentenceIds(),
+    renderSentenceCard,
+  });
 }
 
 function renderSentenceCard(entry) {
-  const selected = state.pages[mode].selected.includes(entry.id);
+  const selected = store.getSelectedIds().includes(entry.id);
   const level = LEVELS.find(function (item) {
     return item.id === entry.level;
   });
@@ -243,16 +221,16 @@ function renderSentenceCard(entry) {
 function renderSentence(entry) {
   const spokenEnglish = templateHelpers.renderSpeechText(entry.english, "en-AU");
   const spokenMandarin = templateHelpers.renderSpeechText(entry.mandarin, "zh-CN");
-  const englishHtml = templateHelpers.renderTemplateHtml(entry.english);
-  const mandarinHtml = templateHelpers.renderTemplateHtml(entry.mandarin);
+  const englishText = templateHelpers.fillTemplate(entry.english);
+  const mandarinText = templateHelpers.fillTemplate(entry.mandarin);
 
   if (mode === "english") {
     return `
-      <button class="preview-line preview-target sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(templateHelpers.fillTemplate(entry.english))}" data-speak-lang="en-AU">
+      <button class="preview-line preview-target sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(englishText)}" data-speak-lang="en-AU">
         <span class="generated-label">English</span>
         <p class="speech-track">${spokenEnglish.html}</p>
       </button>
-      <button class="preview-line sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(templateHelpers.fillTemplate(entry.mandarin))}" data-speak-lang="zh-CN">
+      <button class="preview-line sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(mandarinText)}" data-speak-lang="zh-CN">
         <span class="generated-label">Mandarin</span>
         <p class="speech-track">${spokenMandarin.html}</p>
       </button>
@@ -261,7 +239,7 @@ function renderSentence(entry) {
 
   const pinyinHtml = templateHelpers.renderTemplateHtml(entry.pinyin);
   return `
-    <button class="preview-line preview-target sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(templateHelpers.fillTemplate(entry.mandarin))}" data-speak-lang="zh-CN">
+    <button class="preview-line preview-target sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(mandarinText)}" data-speak-lang="zh-CN">
       <span class="generated-label">Mandarin</span>
       <p class="speech-track">${spokenMandarin.html}</p>
     </button>
@@ -269,7 +247,7 @@ function renderSentence(entry) {
       <span class="generated-label">Pinyin</span>
       <p>${pinyinHtml}</p>
     </div>
-    <button class="preview-line sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(templateHelpers.fillTemplate(entry.english))}" data-speak-lang="en-AU">
+    <button class="preview-line sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(englishText)}" data-speak-lang="en-AU">
       <span class="generated-label">English</span>
       <p class="speech-track">${spokenEnglish.html}</p>
     </button>
@@ -282,6 +260,7 @@ function renderFieldGroup(fieldKey) {
     return "";
   }
 
+  const profile = store.getProfile();
   const enKey = `${fieldKey}_en`;
   const zhKey = `${fieldKey}_zh`;
   const pinyinKey = `${fieldKey}_pinyin`;
@@ -291,7 +270,7 @@ function renderFieldGroup(fieldKey) {
     inputs.push(`
       <label class="field">
         <span>English</span>
-        <input data-profile-key="${enKey}" type="text" value="${escapeAttribute(state.profile[enKey] || "")}" placeholder="${escapeAttribute(def.placeholders.en)}" />
+        <input data-profile-key="${enKey}" type="text" value="${escapeAttribute(profile[enKey] || "")}" placeholder="${escapeAttribute(def.placeholders.en)}" />
       </label>
     `);
   }
@@ -300,7 +279,7 @@ function renderFieldGroup(fieldKey) {
     inputs.push(`
       <label class="field">
         <span>Mandarin</span>
-        <input data-profile-key="${zhKey}" type="text" value="${escapeAttribute(state.profile[zhKey] || "")}" placeholder="${escapeAttribute(def.placeholders.zh)}" />
+        <input data-profile-key="${zhKey}" type="text" value="${escapeAttribute(profile[zhKey] || "")}" placeholder="${escapeAttribute(def.placeholders.zh)}" />
       </label>
     `);
   }
@@ -309,7 +288,7 @@ function renderFieldGroup(fieldKey) {
     inputs.push(`
       <label class="field">
         <span>Pinyin</span>
-        <input data-profile-key="${pinyinKey}" type="text" value="${escapeAttribute(state.profile[pinyinKey] || "")}" placeholder="${escapeAttribute(def.placeholders.pinyin)}" />
+        <input data-profile-key="${pinyinKey}" type="text" value="${escapeAttribute(profile[pinyinKey] || "")}" placeholder="${escapeAttribute(def.placeholders.pinyin)}" />
       </label>
     `);
   }
@@ -322,95 +301,6 @@ function renderFieldGroup(fieldKey) {
       </div>
     </div>
   `;
-}
-
-function bindDynamicEvents() {
-  dom.levelSections.querySelectorAll('[data-action="select"]').forEach(function (input) {
-    input.addEventListener("change", function () {
-      const sentenceId = input.getAttribute("data-sentence-id");
-      if (!sentenceId) {
-        return;
-      }
-
-      if (input.checked) {
-        addSelected(sentenceId);
-      } else {
-        removeSelected(sentenceId);
-      }
-
-      saveState();
-      renderSelectedStack();
-      renderSentenceControls();
-    });
-  });
-
-  dom.levelSections.querySelectorAll('[data-action="hide"]').forEach(function (button) {
-    button.addEventListener("click", function () {
-      const sentenceId = button.getAttribute("data-sentence-id");
-      if (!sentenceId) {
-        return;
-      }
-
-      addHidden(sentenceId);
-      removeSelected(sentenceId);
-      saveState();
-      render();
-    });
-  });
-
-  dom.levelSections.querySelectorAll('[data-action="speak-line"]').forEach(function (button) {
-    button.addEventListener("click", function () {
-      const text = button.getAttribute("data-speak-text");
-      const language = button.getAttribute("data-speak-lang");
-      if (text && language) {
-        speakPhrase(text, language, button);
-      }
-    });
-  });
-
-  dom.levelSections.querySelectorAll("[data-profile-key]").forEach(function (input) {
-    input.addEventListener("input", function () {
-      const key = input.getAttribute("data-profile-key");
-      if (!key) {
-        return;
-      }
-
-      state.profile[key] = input.value;
-      const fieldMeta = translationController.parseProfileFieldKey(key);
-      if (fieldMeta && AUTO_TRANSLATE_FIELDS.has(fieldMeta.base)) {
-        translationController.handleAutoTranslationFieldEdit(fieldMeta);
-      }
-
-      if (key === "name_zh") {
-        if (!(state.profile.name_zh || "").trim() || state.profile.name_zh === state.profile.name_zh_auto) {
-          state.profile.name_zh_auto_locked = "";
-        } else if (state.profile.name_zh_auto && state.profile.name_zh !== state.profile.name_zh_auto) {
-          state.profile.name_zh_auto_locked = "1";
-        }
-      }
-
-      translationController.maybeAutofillNameHanzi(key);
-      saveState();
-      rerenderPreviewContent();
-    });
-  });
-}
-
-function renderSentenceControls() {
-  dom.levelSections.querySelectorAll(".sentence-card").forEach(function (card) {
-    const sentenceId = card.getAttribute("data-sentence-id");
-    const selected = sentenceId && state.pages[mode].selected.includes(sentenceId);
-    const input = card.querySelector('[data-action="select"]');
-    const label = card.querySelector(".select-toggle span");
-
-    card.classList.toggle("is-selected", Boolean(selected));
-    if (input) {
-      input.checked = Boolean(selected);
-    }
-    if (label) {
-      label.textContent = selected ? "Selected" : "Select";
-    }
-  });
 }
 
 function rerenderPreviewContent() {
@@ -430,82 +320,68 @@ function rerenderPreviewContent() {
 }
 
 function renderSelectedStack() {
-  const selectedEntries = getSelectedEntries();
-  dom.selectedStack.innerHTML =
-    selectedEntries.length === 0
-      ? `<p class="empty-stack">Nothing selected yet. Add the lines you want to practise.</p>`
-      : selectedEntries
-          .map(function (entry) {
-            const englishHtml = templateHelpers.renderTemplateHtml(entry.english);
-            const mandarinHtml = templateHelpers.renderTemplateHtml(entry.mandarin);
-            return `
-              <article class="selected-card">
-                <div class="selected-card-head">
-                  <h4>${entry.title}</h4>
-                  <button class="mini-button" type="button" data-remove-selected="${entry.id}">Remove</button>
-                </div>
-                ${
-                  mode === "english"
-                    ? `
-                      <p>${englishHtml}</p>
-                      <p class="selected-support">${mandarinHtml}</p>
-                    `
-                    : `
-                      <p>${mandarinHtml}</p>
-                      <p class="selected-support">${templateHelpers.renderTemplateHtml(entry.pinyin)}</p>
-                      <p class="selected-support">${englishHtml}</p>
-                    `
-                }
-              </article>
-            `;
-          })
-          .join("");
-
-  dom.selectedStack.querySelectorAll("[data-remove-selected]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      const sentenceId = button.getAttribute("data-remove-selected");
-      if (!sentenceId) {
-        return;
-      }
-
-      removeSelected(sentenceId);
-      saveState();
-      renderSelectedStack();
-      renderSentenceControls();
-    });
+  dom.selectedStack.innerHTML = renderSelectedStackHtml({
+    entries: getSelectedEntries(),
+    mode,
+    templateHelpers,
+    removable: true,
+    emptyMessage: "Nothing selected in this session yet. Add the lines you want to practise.",
   });
 }
 
-function buildPracticeDraft(selectedEntries) {
-  const entries = selectedEntries || getSelectedEntries();
-  return entries
+function renderArchivedSessions() {
+  if (!dom.archivedSessions) {
+    return;
+  }
+
+  dom.archivedSessions.innerHTML = renderArchivedSessionsHtml({
+    sessions: store.getArchivedSessions(),
+    mode,
+    getEntriesForSession: getSelectedEntries,
+    templateHelpers,
+    formatSessionDate: formatSessionDateLabel,
+  });
+}
+
+function buildPracticeDraft(entries, options) {
+  const selectedEntries = entries || getSelectedEntries();
+  const profileOverride = options && options.profileOverride;
+  return selectedEntries
     .map(function (entry) {
       if (mode === "english") {
-        return templateHelpers.fillTemplate(entry.english);
+        return templateHelpers.fillTemplate(entry.english, { profileOverride });
       }
-      return `${templateHelpers.fillTemplate(entry.mandarin)}\n${templateHelpers.fillTemplate(entry.pinyin)}`;
+
+      return `${templateHelpers.fillTemplate(entry.mandarin, { profileOverride })}\n${templateHelpers.fillTemplate(entry.pinyin, { profileOverride })}`;
     })
     .join("\n\n");
 }
 
-function buildBilingualDraft() {
-  return getSelectedEntries()
+function buildBilingualDraft(entries, options) {
+  const selectedEntries = entries || getSelectedEntries();
+  const profileOverride = options && options.profileOverride;
+
+  return selectedEntries
     .map(function (entry) {
       const lines =
         mode === "english"
-          ? [templateHelpers.fillTemplate(entry.english), templateHelpers.fillTemplate(entry.mandarin)]
+          ? [
+              templateHelpers.fillTemplate(entry.english, { profileOverride }),
+              templateHelpers.fillTemplate(entry.mandarin, { profileOverride }),
+            ]
           : [
-              templateHelpers.fillTemplate(entry.english),
-              templateHelpers.fillTemplate(entry.mandarin),
-              templateHelpers.fillTemplate(entry.pinyin),
+              templateHelpers.fillTemplate(entry.english, { profileOverride }),
+              templateHelpers.fillTemplate(entry.mandarin, { profileOverride }),
+              templateHelpers.fillTemplate(entry.pinyin, { profileOverride }),
             ];
+
       return lines.join("\n");
     })
     .join("\n\n");
 }
 
-function getSelectedEntries() {
-  return state.pages[mode].selected.map(getEntryById).filter(Boolean);
+function getSelectedEntries(session) {
+  return store.getSelectedIds(mode, session).map(getEntryById).filter(Boolean);
 }
 
 function getEntryById(sentenceId) {
@@ -531,7 +407,7 @@ function speakPhrase(text, language, sourceElement) {
   speechController.speak({
     text,
     language,
-    rate: state.speechRate,
+    rate: store.getSpeechRate(),
     highlightRoot: findSpeechHighlightRoot(sourceElement),
   });
 }
@@ -564,20 +440,101 @@ function findSpeechHighlightRoot(sourceElement) {
   return null;
 }
 
-function addSelected(sentenceId) {
-  if (!state.pages[mode].selected.includes(sentenceId)) {
-    state.pages[mode].selected.push(sentenceId);
+function handleLevelSectionsChange(event) {
+  const input = event.target.closest && event.target.closest('[data-action="select"]');
+  if (!input) {
+    return;
+  }
+
+  const sentenceId = input.getAttribute("data-sentence-id");
+  if (!sentenceId) {
+    return;
+  }
+
+  if (input.checked) {
+    store.selectSentence(sentenceId);
+  } else {
+    store.unselectSentence(sentenceId);
+  }
+
+  store.saveState();
+  renderSelectedStack();
+  renderLevelSections();
+}
+
+function handleLevelSectionsClick(event) {
+  const actionElement = event.target.closest && event.target.closest("[data-action]");
+  if (!actionElement) {
+    return;
+  }
+
+  const action = actionElement.getAttribute("data-action");
+  if (action === "hide") {
+    const sentenceId = actionElement.getAttribute("data-sentence-id");
+    if (!sentenceId) {
+      return;
+    }
+
+    store.hideSentence(sentenceId);
+    store.saveState();
+    render();
+    return;
+  }
+
+  if (action === "speak-line") {
+    const text = actionElement.getAttribute("data-speak-text");
+    const language = actionElement.getAttribute("data-speak-lang");
+    if (text && language) {
+      speakPhrase(text, language, actionElement);
+    }
   }
 }
 
-function removeSelected(sentenceId) {
-  state.pages[mode].selected = state.pages[mode].selected.filter(function (id) {
-    return id !== sentenceId;
-  });
+function handleLevelSectionsInput(event) {
+  const input = event.target.closest && event.target.closest("[data-profile-key]");
+  if (!input) {
+    return;
+  }
+
+  const key = input.getAttribute("data-profile-key");
+  if (!key) {
+    return;
+  }
+
+  const profile = store.getProfile();
+  store.setProfileValue(key, input.value);
+
+  const fieldMeta = translationController.parseProfileFieldKey(key);
+  if (fieldMeta && AUTO_TRANSLATE_FIELDS.has(fieldMeta.base)) {
+    translationController.handleAutoTranslationFieldEdit(fieldMeta);
+  }
+
+  if (key === "name_zh") {
+    if (!(profile.name_zh || "").trim() || profile.name_zh === profile.name_zh_auto) {
+      profile.name_zh_auto_locked = "";
+    } else if (profile.name_zh_auto && profile.name_zh !== profile.name_zh_auto) {
+      profile.name_zh_auto_locked = "1";
+    }
+  }
+
+  translationController.maybeAutofillNameHanzi(key);
+  store.saveState();
+  rerenderPreviewContent();
 }
 
-function addHidden(sentenceId) {
-  if (!state.pages[mode].hidden.includes(sentenceId)) {
-    state.pages[mode].hidden.push(sentenceId);
+function handleSelectedStackClick(event) {
+  const button = event.target.closest && event.target.closest("[data-remove-selected]");
+  if (!button) {
+    return;
   }
+
+  const sentenceId = button.getAttribute("data-remove-selected");
+  if (!sentenceId) {
+    return;
+  }
+
+  store.unselectSentence(sentenceId);
+  store.saveState();
+  renderSelectedStack();
+  renderLevelSections();
 }

@@ -54,6 +54,26 @@
         <section class="section reveal" id="prep-app">
           <div class="prep-layout">
             <section class="prep-main">
+              <div class="builder-card prep-session-card">
+                <div class="prep-session-head">
+                  <div>
+                    <h2>Current session</h2>
+                    <p>One active meetup prep at a time.</p>
+                  </div>
+                  <button class="mini-button" id="newSessionButton" type="button">New session</button>
+                </div>
+                <div class="prep-session-fields">
+                  <label class="field">
+                    <span>Session name</span>
+                    <input id="sessionTitleInput" type="text" placeholder="Wed 6 May Meetup" />
+                  </label>
+                  <label class="field">
+                    <span>Date</span>
+                    <input id="sessionDateInput" type="date" />
+                  </label>
+                </div>
+              </div>
+
               <div class="prep-toolbar">
                 <label class="speed-control" for="speechRateInput">
                   <span>Speed</span>
@@ -83,6 +103,13 @@
                 </div>
 
                 <div class="selected-stack" id="selectedStack"></div>
+              </div>
+
+              <div class="builder-card archive-card">
+                <div class="builder-card-head">
+                  <h3>Past sessions</h3>
+                </div>
+                <div class="archived-sessions" id="archivedSessions"></div>
               </div>
             </aside>
           </div>

@@ -964,6 +964,37 @@ h2 {
   gap: 16px;
 }
 
+.prep-session-card,
+.archive-card {
+  display: grid;
+  gap: 14px;
+}
+
+.prep-session-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.prep-session-head h2 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+}
+
+.prep-session-head p,
+.archive-session-summary span,
+.archive-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.prep-session-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.8fr);
+  gap: 12px;
+}
+
 .prep-sidebar {
   position: sticky;
   top: 16px;
@@ -1236,6 +1267,11 @@ h2 {
   gap: 12px;
 }
 
+.archived-sessions {
+  display: grid;
+  gap: 12px;
+}
+
 .selected-card {
   padding: 16px;
 }
@@ -1243,6 +1279,51 @@ h2 {
 .selected-card p {
   margin: 10px 0 0;
   line-height: 1.65;
+}
+
+.archive-session {
+  border: 1px solid rgba(24, 21, 17, 0.1);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.74);
+  overflow: hidden;
+}
+
+.archive-session summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.archive-session summary::-webkit-details-marker {
+  display: none;
+}
+
+.archive-session-summary strong {
+  display: block;
+}
+
+.archive-session-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(243, 106, 45, 0.14);
+  color: var(--accent-deep);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.archive-session-body {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px 16px;
 }
 
 .presentation-overlay {
@@ -1593,6 +1674,7 @@ h2 {
     flex-direction: column;
   }
 
+  .prep-session-head,
   .sentence-card-head,
   .selected-card-head {
     flex-direction: column;
@@ -1607,6 +1689,10 @@ h2 {
   .speed-control {
     width: 100%;
     grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .prep-session-fields {
+    grid-template-columns: 1fr;
   }
 
   .output-actions {
