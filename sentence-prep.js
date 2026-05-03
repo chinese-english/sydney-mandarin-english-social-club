@@ -152,7 +152,8 @@ function bindStaticEvents() {
 
 function updateSpeechRateLabel() {
   if (dom.speechRateValue) {
-    dom.speechRateValue.textContent = `${store.getSpeechRate().toFixed(2)}x`;
+    const rate = store.getSpeechRate();
+    dom.speechRateValue.textContent = rate <= 0.75 ? "Slower" : rate < 0.95 ? "Medium" : "Faster";
   }
 }
 
@@ -203,7 +204,7 @@ function renderSentenceCard(entry) {
         <div class="sentence-card-actions">
           <label class="select-toggle">
             <input type="checkbox" data-action="select" data-sentence-id="${entry.id}" ${selected ? "checked" : ""} />
-            <span>${selected ? "Selected" : "Select"}</span>
+            <span>${selected ? "Added" : "Add"}</span>
           </label>
           <button class="mini-button" type="button" data-action="hide" data-sentence-id="${entry.id}">Hide</button>
         </div>
@@ -325,7 +326,7 @@ function renderSelectedStack() {
     mode,
     templateHelpers,
     removable: true,
-    emptyMessage: "Nothing selected in this session yet. Add the lines you want to practise.",
+    emptyMessage: "No lines added yet. Add the ones you want to practise.",
   });
 }
 

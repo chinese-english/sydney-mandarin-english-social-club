@@ -55,6 +55,18 @@
     applyTheme(nextTheme);
   }
 
+  function setNavOpen(isOpen) {
+    document.querySelectorAll("[data-nav-panel]").forEach(function (panel) {
+      panel.classList.toggle("is-open", isOpen);
+    });
+
+    document.querySelectorAll("[data-nav-toggle]").forEach(function (button) {
+      button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      button.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+      button.classList.toggle("is-open", isOpen);
+    });
+  }
+
   function clampFontScale(value) {
     const closest = FONT_STEPS.reduce(function (best, current) {
       return Math.abs(current - value) < Math.abs(best - value) ? current : best;
@@ -89,6 +101,19 @@
     button.addEventListener("click", toggleTheme);
   });
 
+  document.querySelectorAll("[data-nav-toggle]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      const isOpen = button.getAttribute("aria-expanded") !== "true";
+      setNavOpen(isOpen);
+    });
+  });
+
+  document.querySelectorAll("[data-nav-panel] a").forEach(function (link) {
+    link.addEventListener("click", function () {
+      setNavOpen(false);
+    });
+  });
+
   document.querySelectorAll("[data-font-size]").forEach(function (button) {
     button.addEventListener("click", function () {
       const action = button.getAttribute("data-font-size");
@@ -102,6 +127,13 @@
     });
   });
 
+  window.addEventListener("resize", function () {
+    if (window.innerWidth > 820) {
+      setNavOpen(false);
+    }
+  });
+
   applyTheme(getPreferredTheme());
   applyFontScale(getPreferredFontScale());
+  setNavOpen(false);
 })();

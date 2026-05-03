@@ -37,14 +37,16 @@
     <div class="site-wrap">
       <header class="site-header">
         <a class="brand" href="index.html" aria-label="Return to homepage">
-          <span class="brand-mark">ME</span>
-          <span class="brand-copy">
-            <strong>Sydney Mandarin and English Social Club</strong>
-            <span>English preparation page</span>
-          </span>
+          <span class="brand-title">Chinese-English</span>
         </a>
 
-        <div class="site-header-actions">
+        <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="siteHeaderPanel" aria-label="Open menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="site-header-actions" id="siteHeaderPanel" data-nav-panel>
           <nav class="site-nav" aria-label="Primary">
             <a href="index.html">Home</a>
             <a href="chinese.html">Chinese</a>
@@ -65,7 +67,7 @@
             <div>
               <p class="eyebrow">English prep</p>
               <h1 class="prep-title">Prepare your English lines.</h1>
-              <p class="prep-note">For Chinese speakers practising English.</p>
+              <p class="prep-note">For Chinese speakers practising English. Pick your lines, fill in your details, tap a sentence to hear it, then use Full screen at the meetup.</p>
             </div>
           </div>
         </section>
@@ -76,10 +78,10 @@
               <div class="builder-card prep-session-card">
                 <div class="prep-session-head">
                   <div>
-                    <h2>Current session</h2>
-                    <p>One active meetup prep at a time.</p>
+                    <h2>This meetup</h2>
+                    <p>Your current practice set.</p>
                   </div>
-                  <button class="mini-button" id="newSessionButton" type="button">New session</button>
+                  <button class="mini-button" id="newSessionButton" type="button">New meetup</button>
                 </div>
                 <div class="prep-session-fields">
                   <label class="field">
@@ -95,12 +97,12 @@
 
               <div class="prep-toolbar">
                 <label class="speed-control" for="speechRateInput">
-                  <span>Speed</span>
+                  <span>Speech speed <small>for audio</small></span>
                   <input id="speechRateInput" type="range" min="0.5" max="1.15" step="0.05" value="0.75" />
-                  <strong id="speechRateValue">0.75x</strong>
+                  <strong id="speechRateValue">Slower</strong>
                 </label>
                 <div class="prep-toolbar-actions">
-                  <button class="mini-button" id="restoreHiddenButton" type="button">Restore hidden</button>
+                  <button class="mini-button" id="restoreHiddenButton" type="button">Show hidden</button>
                 </div>
               </div>
               <div id="levelSections"></div>
@@ -109,11 +111,11 @@
             <aside class="prep-sidebar">
               <div class="builder-card output-card">
                 <div class="builder-card-head">
-                  <h3>Selected</h3>
+                  <h3>Your lines</h3>
                 </div>
 
                 <div class="output-actions">
-                  <button class="button button-primary output-button output-button-main" id="presentationModeButton" type="button">Presentation</button>
+                  <button class="button button-primary output-button output-button-main" id="presentationModeButton" type="button">Full screen</button>
                   <div class="output-utility-actions" aria-label="Utilities">
                     <button class="utility-button" id="copyPracticeButton" type="button" aria-label="Copy practice stack" title="Copy practice stack">⎘</button>
                     <button class="utility-button" id="copyBilingualButton" type="button" aria-label="Copy bilingual stack" title="Copy bilingual stack">文</button>
@@ -126,7 +128,7 @@
 
               <div class="builder-card archive-card">
                 <div class="builder-card-head">
-                  <h3>Past sessions</h3>
+                  <h3>Earlier meetups</h3>
                 </div>
                 <div class="archived-sessions" id="archivedSessions"></div>
               </div>

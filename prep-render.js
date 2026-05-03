@@ -71,7 +71,7 @@ export function renderArchivedSessionsHtml({
   formatSessionDate,
 }) {
   if (!sessions.length) {
-    return `<p class="empty-stack archive-empty">No past sessions yet.</p>`;
+    return `<p class="empty-stack archive-empty">No earlier meetups yet.</p>`;
   }
 
   const content = sessions
@@ -106,7 +106,7 @@ export function renderArchivedSessionsHtml({
     .filter(Boolean)
     .join("");
 
-  return content || `<p class="empty-stack archive-empty">No past sessions for this page yet.</p>`;
+  return content || `<p class="empty-stack archive-empty">No earlier meetups for this page yet.</p>`;
 }
 
 function renderStackCard({ entry, mode, templateHelpers, profileOverride, removable }) {
