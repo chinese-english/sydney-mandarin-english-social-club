@@ -558,9 +558,12 @@
   let state = loadState();
   let presentationIndex = 0;
   let touchStartX = 0;
+  let speechVoices = [];
+  let speechUnlocked = false;
 
   const presentationOverlay = createPresentationOverlay();
 
+  primeSpeechSynthesis();
   render();
   bindStaticEvents();
 
@@ -618,6 +621,61 @@
       selected: Array.isArray(page && page.selected) ? page.selected : [],
       hidden: Array.isArray(page && page.hidden) ? page.hidden : [],
     };
+  }
+
+  function primeSpeechSynthesis() {
+    if (!("speechSynthesis" in window)) {
+      return;
+    }
+
+    loadSpeechVoices();
+    if (typeof window.speechSynthesis.onvoiceschanged !== "undefined") {
+      window.speechSynthesis.addEventListener("voiceschanged", loadSpeechVoices);
+    }
+
+    const unlock = function () {
+      if (speechUnlocked) {
+        return;
+      }
+
+      speechUnlocked = true;
+      try {
+        window.speechSynthesis.resume();
+      } catch (_error) {}
+    };
+
+    document.addEventListener("pointerdown", unlock, { passive: true, once: true });
+    document.addEventListener("touchstart", unlock, { passive: true, once: true });
+  }
+
+  function loadSpeechVoices() {
+    if (!("speechSynthesis" in window)) {
+      return;
+    }
+
+    speechVoices = window.speechSynthesis.getVoices() || [];
+  }
+
+  function pickSpeechVoice(language) {
+    const voices = speechVoices.length ? speechVoices : window.speechSynthesis.getVoices();
+    if (!voices || !voices.length) {
+      return null;
+    }
+
+    const preferredPrefixes =
+      language === "en-AU"
+        ? ["en-AU", "en-GB", "en-US", "en"]
+        : ["zh-CN", "zh-HK", "zh-TW", "cmn", "zh"];
+
+    for (let i = 0; i < preferredPrefixes.length; i += 1) {
+      const prefix = preferredPrefixes[i].toLowerCase();
+      const match = voices.find((voice) => (voice.lang || "").toLowerCase().startsWith(prefix));
+      if (match) {
+        return match;
+      }
+    }
+
+    return voices[0] || null;
   }
 
   function saveState() {
@@ -1531,11 +1589,25 @@
     }
 
     const text = mode === "english" ? fillTemplate(entry.english) : fillTemplate(entry.mandarin);
+    const language = mode === "english" ? "en-AU" : "zh-CN";
+    const voice = pickSpeechVoice(language);
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = mode === "english" ? "en-AU" : "zh-CN";
+    utterance.lang = language;
     utterance.rate = mode === "english" ? 0.95 : 0.85;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    if (voice) {
+      utterance.voice = voice;
+    }
+
+    try {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
+    } catch (_error) {}
+
+    window.setTimeout(function () {
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch (_error) {}
+    }, 50);
   }
 
   function addSelected(sentenceId) {
