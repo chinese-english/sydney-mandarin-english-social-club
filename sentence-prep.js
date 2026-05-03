@@ -490,10 +490,15 @@
   const restoreHiddenButton = document.getElementById("restoreHiddenButton");
   const copyPracticeButton = document.getElementById("copyPracticeButton");
   const copyBilingualButton = document.getElementById("copyBilingualButton");
+  const presentationModeButton = document.getElementById("presentationModeButton");
   const clearSelectionsButton = document.getElementById("clearSelectionsButton");
 
   const viewLevel = new URLSearchParams(window.location.search).get("level");
   let state = loadState();
+  let presentationIndex = 0;
+  let touchStartX = 0;
+
+  const presentationOverlay = createPresentationOverlay();
 
   render();
   bindStaticEvents();
@@ -575,6 +580,12 @@
       copyText(buildBilingualDraft());
       flashButton(copyBilingualButton, "Copied");
     });
+
+    if (presentationModeButton) {
+      presentationModeButton.addEventListener("click", function () {
+        openPresentationMode();
+      });
+    }
 
     clearSelectionsButton.addEventListener("click", function () {
       state.pages[mode].selected = [];
@@ -992,12 +1003,29 @@
   }
 
   function fallbackValue(base, variant) {
+    if (variant === "zh") {
+      const direct = state.profile[`${base}_zh`];
+      if (direct && direct.trim()) {
+        return direct.trim();
+      }
+
+      const suggested = transliterateNamePinyinToHanzi(state.profile[`${base}_pinyin`] || "");
+      if (suggested) {
+        return suggested;
+      }
+
+      const englishFallback = state.profile[`${base}_en`];
+      if (englishFallback && englishFallback.trim()) {
+        return englishFallback.trim();
+      }
+
+      return "___";
+    }
+
     const attempts =
       variant === "en"
         ? [`${base}_en`, `${base}_zh`, `${base}_pinyin`]
-        : variant === "zh"
-          ? [`${base}_zh`, `${base}_en`, `${base}_pinyin`]
-          : [`${base}_pinyin`, `${base}_zh`, `${base}_en`];
+        : [`${base}_pinyin`, `${base}_zh`, `${base}_en`];
 
     for (let i = 0; i < attempts.length; i += 1) {
       const candidate = state.profile[attempts[i]];
@@ -1007,6 +1035,153 @@
     }
 
     return "___";
+  }
+
+  function createPresentationOverlay() {
+    const overlay = document.createElement("div");
+    overlay.className = "presentation-overlay";
+    overlay.innerHTML = `
+      <div class="presentation-shell">
+        <div class="presentation-topbar">
+          <div class="presentation-counter" id="presentationCounter">0 / 0</div>
+          <button class="presentation-close" type="button" aria-label="Close presentation mode">Close</button>
+        </div>
+        <div class="presentation-slide" id="presentationSlide"></div>
+        <div class="presentation-nav">
+          <button class="button button-secondary output-button" type="button" id="presentationPrevButton">Previous</button>
+          <button class="button button-primary output-button" type="button" id="presentationNextButton">Next</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const closeButton = overlay.querySelector(".presentation-close");
+    const prevButton = overlay.querySelector("#presentationPrevButton");
+    const nextButton = overlay.querySelector("#presentationNextButton");
+
+    closeButton.addEventListener("click", closePresentationMode);
+    prevButton.addEventListener("click", function () {
+      movePresentation(-1);
+    });
+    nextButton.addEventListener("click", function () {
+      movePresentation(1);
+    });
+
+    overlay.addEventListener("click", function (event) {
+      if (event.target === overlay) {
+        closePresentationMode();
+      }
+    });
+
+    overlay.addEventListener("touchstart", function (event) {
+      touchStartX = event.changedTouches[0].clientX;
+    }, { passive: true });
+
+    overlay.addEventListener("touchend", function (event) {
+      const delta = event.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(delta) < 40) {
+        return;
+      }
+
+      movePresentation(delta < 0 ? 1 : -1);
+    }, { passive: true });
+
+    document.addEventListener("keydown", function (event) {
+      if (!overlay.classList.contains("is-open")) {
+        return;
+      }
+
+      if (event.key === "Escape") {
+        closePresentationMode();
+      } else if (event.key === "ArrowRight") {
+        movePresentation(1);
+      } else if (event.key === "ArrowLeft") {
+        movePresentation(-1);
+      }
+    });
+
+    return overlay;
+  }
+
+  function openPresentationMode() {
+    const entries = getSelectedEntries();
+    if (!entries.length) {
+      if (presentationModeButton) {
+        flashButton(presentationModeButton, "Select phrases first");
+      }
+      return;
+    }
+
+    presentationIndex = 0;
+    presentationOverlay.classList.add("is-open");
+    renderPresentationSlide();
+    requestPresentationFullscreen();
+  }
+
+  function closePresentationMode() {
+    presentationOverlay.classList.remove("is-open");
+    if (document.fullscreenElement && document.fullscreenElement === presentationOverlay) {
+      document.exitFullscreen().catch(function () {});
+    }
+  }
+
+  function movePresentation(direction) {
+    const entries = getSelectedEntries();
+    if (!entries.length) {
+      return;
+    }
+
+    presentationIndex = Math.max(0, Math.min(entries.length - 1, presentationIndex + direction));
+    renderPresentationSlide();
+  }
+
+  function renderPresentationSlide() {
+    const entries = getSelectedEntries();
+    const slide = presentationOverlay.querySelector("#presentationSlide");
+    const counter = presentationOverlay.querySelector("#presentationCounter");
+    const prevButton = presentationOverlay.querySelector("#presentationPrevButton");
+    const nextButton = presentationOverlay.querySelector("#presentationNextButton");
+
+    if (!entries.length || !slide || !counter || !prevButton || !nextButton) {
+      return;
+    }
+
+    const entry = entries[presentationIndex];
+    const english = fillTemplate(entry.english);
+    const mandarin = fillTemplate(entry.mandarin);
+    const pinyin = fillTemplate(entry.pinyin);
+
+    slide.innerHTML =
+      mode === "english"
+        ? `
+          <div class="presentation-main">${escapeHtml(english)}</div>
+          <div class="presentation-support">${escapeHtml(mandarin)}</div>
+          <div class="presentation-support presentation-pinyin">${escapeHtml(pinyin)}</div>
+        `
+        : `
+          <div class="presentation-main">${escapeHtml(mandarin)}</div>
+          <div class="presentation-support presentation-pinyin">${escapeHtml(pinyin)}</div>
+          <div class="presentation-support">${escapeHtml(english)}</div>
+        `;
+
+    counter.textContent = `${presentationIndex + 1} / ${entries.length}`;
+    prevButton.disabled = presentationIndex === 0;
+    nextButton.disabled = presentationIndex === entries.length - 1;
+  }
+
+  function getSelectedEntries() {
+    return state.pages[mode].selected
+      .map((id) => SENTENCES.find((entry) => entry.id === id))
+      .filter(Boolean);
+  }
+
+  function requestPresentationFullscreen() {
+    if (!presentationOverlay.requestFullscreen) {
+      return;
+    }
+
+    presentationOverlay.requestFullscreen().catch(function () {});
   }
 
   function addSelected(sentenceId) {
