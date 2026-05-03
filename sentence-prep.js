@@ -30,6 +30,10 @@ const dom = {
   archivedSessions: document.getElementById("archivedSessions"),
   selectedCountBadge: document.getElementById("selectedCountBadge"),
   archivedCountBadge: document.getElementById("archivedCountBadge"),
+  mobileActionBar: document.getElementById("mobileActionBar"),
+  mobileSelectedCount: document.getElementById("mobileSelectedCount"),
+  mobileViewLinesButton: document.getElementById("mobileViewLinesButton"),
+  mobilePresentationButton: document.getElementById("mobilePresentationButton"),
   restoreHiddenButton: document.getElementById("restoreHiddenButton"),
   speechRateInput: document.getElementById("speechRateInput"),
   speechRateValue: document.getElementById("speechRateValue"),
@@ -114,6 +118,21 @@ function bindStaticEvents() {
   if (dom.presentationModeButton) {
     dom.presentationModeButton.addEventListener("click", function () {
       presentationController.open();
+    });
+  }
+
+  if (dom.mobilePresentationButton) {
+    dom.mobilePresentationButton.addEventListener("click", function () {
+      presentationController.open();
+    });
+  }
+
+  if (dom.mobileViewLinesButton) {
+    dom.mobileViewLinesButton.addEventListener("click", function () {
+      const targetCard = document.querySelector(".output-card");
+      if (targetCard) {
+        targetCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     });
   }
 
@@ -326,6 +345,18 @@ function renderSelectedStack() {
   const entries = getSelectedEntries();
   if (dom.selectedCountBadge) {
     dom.selectedCountBadge.textContent = String(entries.length);
+  }
+  if (dom.mobileSelectedCount) {
+    dom.mobileSelectedCount.textContent = entries.length === 1 ? "1 line" : `${entries.length} lines`;
+  }
+  if (dom.mobileActionBar) {
+    dom.mobileActionBar.classList.toggle("has-selection", entries.length > 0);
+  }
+  if (dom.mobileViewLinesButton) {
+    dom.mobileViewLinesButton.disabled = entries.length === 0;
+  }
+  if (dom.mobilePresentationButton) {
+    dom.mobilePresentationButton.disabled = entries.length === 0;
   }
 
   dom.selectedStack.innerHTML = renderSelectedStackHtml({

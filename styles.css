@@ -1590,6 +1590,10 @@ html[data-theme="dark"] .theme-toggle:focus-visible {
   font-weight: 800;
 }
 
+.mobile-action-bar {
+  display: none;
+}
+
 .selected-card p {
   margin: 10px 0 0;
   line-height: 1.65;
@@ -2047,6 +2051,7 @@ html[data-theme="dark"] .theme-toggle:focus-visible {
 @media (max-width: 540px) {
   .site-wrap {
     width: min(calc(100% - 10px), var(--content-width));
+    padding-bottom: 108px;
   }
 
   .brand-copy strong {
@@ -2158,5 +2163,59 @@ html[data-theme="dark"] .theme-toggle:focus-visible {
 
   .presentation-main {
     max-width: none;
+  }
+
+  .mobile-action-bar {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 90;
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: rgba(255, 251, 244, 0.9);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 18px 40px rgba(26, 16, 10, 0.12);
+  }
+
+  html[data-theme="dark"] .mobile-action-bar {
+    background: rgba(23, 27, 33, 0.92);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  }
+
+  .mobile-action-summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mobile-action-summary strong {
+    font-size: 0.95rem;
+  }
+
+  .mobile-action-summary span {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .mobile-action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .mobile-action-button {
+    min-height: 48px;
+    width: 100%;
+  }
+
+  .mobile-action-bar .button:disabled {
+    opacity: 0.45;
+    cursor: default;
+    transform: none;
   }
 }
