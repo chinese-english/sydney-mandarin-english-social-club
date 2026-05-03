@@ -8,7 +8,7 @@
       name="description"
       content="A structured Sydney language exchange social club where people prepare, speak with strangers, rotate, and turn language learning into real social practice."
     />
-    <meta name="theme-color" content="#f36a2d" />
+    <meta name="theme-color" content="#f36a2d" id="themeColorMeta" />
     <meta property="og:title" content="Sydney Mandarin and English Social Club" />
     <meta
       property="og:description"
@@ -22,6 +22,15 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=Sora:wght@400;500;600;700;800&amp;display=swap"
       rel="stylesheet"
     />
+    <script>
+      (() => {
+        const savedTheme = localStorage.getItem("mesc-theme");
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : systemDark ? "dark" : "light";
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -39,14 +48,16 @@
           </span>
         </a>
 
-        <nav class="site-nav" aria-label="Primary">
-          <a href="#about">About</a>
-          <a href="#how">How it works</a>
-          <a href="chinese.html">Chinese prep</a>
-          <a href="english.html">English prep</a>
-          <a href="#pages">Prep pages</a>
-          <a href="#join">Join</a>
-        </nav>
+        <div class="site-header-actions">
+          <nav class="site-nav" aria-label="Primary">
+            <a href="#about">About</a>
+            <a href="#how">How it works</a>
+            <a href="chinese.html">Chinese prep</a>
+            <a href="english.html">English prep</a>
+            <a href="#join">Join</a>
+          </nav>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle colour theme">Dark mode</button>
+        </div>
       </header>
 
       <main id="top">
@@ -93,40 +104,14 @@
           </aside>
         </section>
 
-        <section class="section prep-split reveal">
-          <div class="prep-split-grid">
-            <article class="prep-split-card">
-              <p class="eyebrow">For English Speakers</p>
-              <h2>Prepare Chinese</h2>
-              <p>If you are an English speaker learning Chinese, use the Chinese prep page before the meetup.</p>
-              <a class="button button-primary" href="chinese.html">Open Chinese prep</a>
-            </article>
-
-            <article class="prep-split-card">
-              <p class="eyebrow">For Chinese Speakers</p>
-              <h2>Prepare English</h2>
-              <p>If you are a Chinese speaker learning English, use the English prep page before the meetup.</p>
-              <a class="button button-primary" href="english.html">Open English prep</a>
-            </article>
+        <section class="section reveal" id="about">
+          <div class="section-heading narrow">
+            <p class="eyebrow">About us</p>
+            <h2>A weekly speaking club built around preparation, repetition, and real conversation.</h2>
+            <p class="section-lead">
+              We are a social club because people come to socialise through language, not sit through lectures. The structure exists to get people speaking quickly, make beginners comfortable, and turn practice into something real from the first minute.
+            </p>
           </div>
-        </section>
-
-        <section class="section intro-grid reveal" id="about">
-          <article class="intro-card">
-            <p class="eyebrow">Why a social club</p>
-            <h2>Because the goal is social language use, not passive listening.</h2>
-            <p>
-              If the goal is to speak with real people, then the practice has to involve real people. That includes the awkward part, the repetition, the corrections, and the moment when a stranger finally understands what you meant to say.
-            </p>
-          </article>
-
-          <article class="intro-card accent-card">
-            <p class="eyebrow">What we are not</p>
-            <h2>Not a class, not a lecture, not a presentation night.</h2>
-            <p>
-              We do not gather to sit quietly and listen. We gather to speak, meet new people, and turn language learning into something live, social, and worth returning to every week.
-            </p>
-          </article>
         </section>
 
         <section class="section reveal" id="how">
@@ -187,33 +172,6 @@
           </div>
         </section>
 
-        <section class="section reveal" id="pages">
-          <div class="section-heading">
-            <p class="eyebrow">Prep pages</p>
-            <h2>Pick your language, pick your level, and build your lines.</h2>
-          </div>
-
-          <div class="materials-grid">
-            <article class="material-card">
-              <span class="material-type">Chinese</span>
-              <h3>Chinese preparation page</h3>
-              <p>
-                For English speakers preparing to speak Chinese. Characters, pinyin, and English stay together on every sentence.
-              </p>
-              <a href="chinese.html">Open Chinese prep</a>
-            </article>
-
-            <article class="material-card">
-              <span class="material-type">English</span>
-              <h3>English preparation page</h3>
-              <p>
-                For Chinese speakers preparing to speak English. Build your lines, select the ones you want, and use presentation mode at the meetup.
-              </p>
-              <a href="english.html">Open English prep</a>
-            </article>
-          </div>
-        </section>
-
         <section class="cta reveal" id="join">
           <div class="cta-copy">
             <p class="eyebrow">Start here</p>
@@ -232,11 +190,8 @@
           <strong>Sydney Mandarin and English Social Club</strong>
           <p>A structured social club for practicing language with real people in Sydney.</p>
         </div>
-        <div class="footer-links">
-          <a href="chinese.html">Chinese prep</a>
-          <a href="english.html">English prep</a>
-        </div>
       </footer>
     </div>
+    <script src="theme.js"></script>
   </body>
 </html>

@@ -8,7 +8,7 @@
       name="description"
       content="Prepare your Chinese practice lines before the meetup. Choose your level, select sentences, fill in your details, and save your stack locally."
     />
-    <meta name="theme-color" content="#f36a2d" />
+    <meta name="theme-color" content="#f36a2d" id="themeColorMeta" />
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,6 +16,15 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=Sora:wght@400;500;600;700;800&amp;display=swap"
       rel="stylesheet"
     />
+    <script>
+      (() => {
+        const savedTheme = localStorage.getItem("mesc-theme");
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : systemDark ? "dark" : "light";
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body data-prep-mode="mandarin">
@@ -33,11 +42,14 @@
           </span>
         </a>
 
-        <nav class="site-nav" aria-label="Primary">
-          <a href="index.html">Home</a>
-          <a href="chinese.html">Chinese</a>
-          <a href="english.html">English</a>
-        </nav>
+        <div class="site-header-actions">
+          <nav class="site-nav" aria-label="Primary">
+            <a href="index.html">Home</a>
+            <a href="chinese.html">Chinese</a>
+            <a href="english.html">English</a>
+          </nav>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle colour theme">Dark mode</button>
+        </div>
       </header>
 
       <main>
@@ -117,6 +129,7 @@
       </main>
     </div>
 
+    <script src="theme.js"></script>
     <script type="module" src="sentence-prep.js"></script>
   </body>
 </html>
