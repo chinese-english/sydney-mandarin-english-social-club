@@ -7,8 +7,8 @@ This repository stores the core description and operating notes for the Sydney M
 The repository includes a static website:
 
 - `index.html`: attendee-focused homepage
+- `chinese.html`: Chinese preparation page for English speakers learning Chinese
 - `english.html`: interactive English preparation page
-- `mandarin.html`: interactive Mandarin preparation page
 - `sentence-prep.js`: shared sentence selection, persistence, and rendering logic
 - `styles.css`: shared styling
 
@@ -91,8 +91,8 @@ By joining, participants can:
 
 - `README.md`: club overview and positioning
 - `index.html`: attendee-facing website landing page
+- `chinese.html`: interactive Chinese sentence-prep page
 - `english.html`: interactive English sentence-prep page
-- `mandarin.html`: interactive Mandarin sentence-prep page
 - `sentence-prep.js`: shared prep-page logic and local browser persistence
 - `styles.css`: website styling
 - `LICENSE.md`: plain-language free-use note for the model and materials

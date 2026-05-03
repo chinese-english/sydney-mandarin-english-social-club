@@ -665,7 +665,7 @@
   }
 
   function renderLevelLinks() {
-    const page = mode === "english" ? "english.html" : "mandarin.html";
+    const page = mode === "english" ? "english.html" : "chinese.html";
     const links = [
       `<a class="level-chip ${viewLevel ? "" : "is-active"}" href="${page}">All levels</a>`,
       ...LEVELS.map((level) => {
