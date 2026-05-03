@@ -139,11 +139,20 @@ html[data-theme="dark"] .background-mesh {
 }
 
 .site-header {
+  position: sticky;
+  top: 10px;
+  z-index: 80;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 8px 0 20px;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 251, 244, 0.74);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 34px rgba(40, 24, 12, 0.08);
 }
 
 .nav-toggle {
@@ -322,6 +331,11 @@ html[data-theme="dark"] .background-mesh {
 html[data-theme="dark"] .hero {
   background: linear-gradient(135deg, rgba(24, 29, 35, 0.92), rgba(18, 22, 27, 0.92));
   border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .site-header {
+  background: rgba(23, 27, 33, 0.78);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
 }
 
 .hero::after {
@@ -1933,7 +1947,7 @@ html[data-theme="dark"] .theme-toggle:focus-visible {
   }
 
   .site-header {
-    padding-bottom: 14px;
+    padding: 10px 12px;
   }
 
   .nav-toggle {
