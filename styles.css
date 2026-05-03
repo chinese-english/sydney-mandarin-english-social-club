@@ -1128,6 +1128,16 @@ h2 {
   line-height: 1.7;
 }
 
+.speech-track {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.speech-unit,
+.speech-gap {
+  white-space: pre-wrap;
+}
+
 .injected-value {
   display: inline-block;
   padding: 0.04em 0.3em;
@@ -1135,6 +1145,19 @@ h2 {
   background: rgba(243, 106, 45, 0.18);
   color: var(--accent-deep);
   font-weight: 700;
+}
+
+.speech-unit.is-speaking {
+  border-radius: 0.45em;
+  background: rgba(45, 127, 113, 0.22);
+  color: var(--jade);
+  box-shadow: 0 0 0 1px rgba(45, 127, 113, 0.18);
+}
+
+.speech-unit.injected-value.is-speaking {
+  background: rgba(243, 106, 45, 0.28);
+  color: var(--accent-deep);
+  box-shadow: 0 0 0 1px rgba(243, 106, 45, 0.2);
 }
 
 .preview-target p {

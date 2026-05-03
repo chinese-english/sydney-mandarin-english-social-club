@@ -56,7 +56,7 @@ const speechController = createSpeechController();
 const presentationController = createPresentationController({
   mode,
   getSelectedEntries,
-  renderTemplateHtml: templateHelpers.renderTemplateHtml,
+  renderSpeechText: templateHelpers.renderSpeechText,
   speakSentenceById,
   presentationModeButton: dom.presentationModeButton,
 });
@@ -212,6 +212,8 @@ function renderSentenceCard(entry) {
 }
 
 function renderSentence(entry) {
+  const spokenEnglish = templateHelpers.renderSpeechText(entry.english, "en-AU");
+  const spokenMandarin = templateHelpers.renderSpeechText(entry.mandarin, "zh-CN");
   const englishHtml = templateHelpers.renderTemplateHtml(entry.english);
   const mandarinHtml = templateHelpers.renderTemplateHtml(entry.mandarin);
 
@@ -219,7 +221,7 @@ function renderSentence(entry) {
     return `
       <div class="preview-line preview-target">
         <span class="generated-label">English</span>
-        <p>${englishHtml}</p>
+        <p class="speech-track">${spokenEnglish.html}</p>
       </div>
       <div class="preview-line">
         <span class="generated-label">Mandarin</span>
@@ -232,7 +234,7 @@ function renderSentence(entry) {
   return `
     <div class="preview-line preview-target">
       <span class="generated-label">Mandarin</span>
-      <p>${mandarinHtml}</p>
+      <p class="speech-track">${spokenMandarin.html}</p>
     </div>
     <div class="preview-line preview-target-secondary">
       <span class="generated-label">Pinyin</span>
@@ -331,7 +333,7 @@ function bindDynamicEvents() {
     button.addEventListener("click", function () {
       const sentenceId = button.getAttribute("data-sentence-id");
       if (sentenceId) {
-        speakSentenceById(sentenceId);
+        speakSentenceById(sentenceId, button);
       }
     });
   });
@@ -482,7 +484,7 @@ function getEntryById(sentenceId) {
   });
 }
 
-function speakSentenceById(sentenceId) {
+function speakSentenceById(sentenceId, sourceElement) {
   const entry = getEntryById(sentenceId);
   if (!entry) {
     return;
@@ -492,7 +494,36 @@ function speakSentenceById(sentenceId) {
     text: mode === "english" ? templateHelpers.fillTemplate(entry.english) : templateHelpers.fillTemplate(entry.mandarin),
     language: mode === "english" ? "en-AU" : "zh-CN",
     rate: mode === "english" ? 0.95 : 0.85,
+    highlightRoot: findSpeechHighlightRoot(sourceElement),
   });
+}
+
+function findSpeechHighlightRoot(sourceElement) {
+  if (!sourceElement) {
+    return null;
+  }
+
+  const directTrack = sourceElement.querySelector && sourceElement.querySelector(".speech-track");
+  if (directTrack) {
+    return directTrack;
+  }
+
+  const preview = sourceElement.closest && sourceElement.closest(".sentence-preview");
+  if (preview) {
+    return preview.querySelector(".speech-track");
+  }
+
+  const card = sourceElement.closest && sourceElement.closest(".sentence-card");
+  if (card) {
+    return card.querySelector(".preview-target .speech-track");
+  }
+
+  const slide = sourceElement.closest && sourceElement.closest(".presentation-slide");
+  if (slide) {
+    return slide.querySelector(".speech-track");
+  }
+
+  return null;
 }
 
 function addSelected(sentenceId) {

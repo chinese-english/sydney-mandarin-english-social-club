@@ -52,6 +52,27 @@ export function createTemplateHelpers({ getState, mode }) {
     });
   }
 
+  function renderSpeechText(template, language) {
+    const units = buildSpeechUnits(template, language, resolveToken);
+    return {
+      text: units.map(function (unit) {
+        return unit.text;
+      }).join(""),
+      html: units.map(function (unit) {
+        const classes = [unit.highlightable ? "speech-unit" : "speech-gap"];
+        if (unit.isUserValue && unit.highlightable) {
+          classes.push("injected-value");
+        }
+
+        const attrs = unit.highlightable
+          ? ` data-speech-start="${unit.start}" data-speech-end="${unit.end}"`
+          : "";
+
+        return `<span class="${classes.join(" ")}"${attrs}>${escapeHtml(unit.text)}</span>`;
+      }).join(""),
+    };
+  }
+
   function resolveToken(token) {
     const state = getState();
     const dynamic = {
@@ -79,8 +100,70 @@ export function createTemplateHelpers({ getState, mode }) {
   return {
     fillTemplate,
     renderTemplateHtml,
+    renderSpeechText,
     transliterateNamePinyinToHanzi,
   };
+}
+
+function buildSpeechUnits(template, language, resolveToken) {
+  const sourceUnits = [];
+  const tokenPattern = /\{([a-z_]+)\}/g;
+  let cursor = 0;
+  let match;
+
+  while ((match = tokenPattern.exec(template))) {
+    appendSpeechParts(sourceUnits, template.slice(cursor, match.index), language, false);
+    appendSpeechParts(sourceUnits, resolveToken(match[1]), language, !match[1].startsWith("target_language_"));
+    cursor = match.index + match[0].length;
+  }
+
+  appendSpeechParts(sourceUnits, template.slice(cursor), language, false);
+
+  let position = 0;
+  return sourceUnits.map(function (unit) {
+    const normalized = {
+      text: unit.text,
+      highlightable: unit.highlightable,
+      isUserValue: unit.isUserValue,
+      start: position,
+      end: position + unit.text.length,
+    };
+    position = normalized.end;
+    return normalized;
+  });
+}
+
+function appendSpeechParts(units, text, language, isUserValue) {
+  tokenizeSpeech(text, language).forEach(function (part) {
+    units.push({
+      text: part.text,
+      highlightable: part.highlightable,
+      isUserValue,
+    });
+  });
+}
+
+function tokenizeSpeech(text, language) {
+  if (!text) {
+    return [];
+  }
+
+  if (language.startsWith("zh")) {
+    return Array.from(text).map(function (char) {
+      return {
+        text: char,
+        highlightable: !/[\s，。！？；：、“”‘’（）()《》【】,.!?;:'"~\-]/.test(char),
+      };
+    });
+  }
+
+  const parts = text.match(/(\s+|[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*|[^A-Za-z0-9\s])/g) || [text];
+  return parts.map(function (part) {
+    return {
+      text: part,
+      highlightable: !/^\s+$/.test(part) && /^[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*$/.test(part),
+    };
+  });
 }
 
 function fallbackValue(state, base, variant) {
@@ -402,6 +485,7 @@ function extractGoogleRomanization(data) {
 export function createSpeechController() {
   let voices = [];
   let unlocked = false;
+  let highlightedNodes = [];
 
   function prime() {
     if (!("speechSynthesis" in window)) {
@@ -428,7 +512,7 @@ export function createSpeechController() {
     document.addEventListener("touchstart", unlock, { passive: true, once: true });
   }
 
-  function speak({ text, language, rate }) {
+  function speak({ text, language, rate, highlightRoot }) {
     if (!("speechSynthesis" in window) || !text) {
       return;
     }
@@ -441,6 +525,19 @@ export function createSpeechController() {
     if (voice) {
       utterance.voice = voice;
     }
+
+    utterance.onboundary = function (event) {
+      if (typeof event.charIndex !== "number") {
+        return;
+      }
+
+      syncSpeechHighlight(highlightRoot, event.charIndex);
+    };
+
+    utterance.onend = clearSpeechHighlight;
+    utterance.onerror = clearSpeechHighlight;
+
+    clearSpeechHighlight();
 
     try {
       window.speechSynthesis.cancel();
@@ -480,13 +577,48 @@ export function createSpeechController() {
     return available[0] || null;
   }
 
+  function syncSpeechHighlight(root, charIndex) {
+    clearSpeechHighlight();
+    if (!root) {
+      return;
+    }
+
+    const nodes = Array.from(root.querySelectorAll("[data-speech-start][data-speech-end]"));
+    let activeNode = nodes.find(function (node) {
+      const start = Number(node.getAttribute("data-speech-start"));
+      const end = Number(node.getAttribute("data-speech-end"));
+      return charIndex >= start && charIndex < end;
+    });
+
+    if (!activeNode) {
+      activeNode = nodes.find(function (node) {
+        const start = Number(node.getAttribute("data-speech-start"));
+        return start >= charIndex;
+      }) || null;
+    }
+
+    if (!activeNode) {
+      return;
+    }
+
+    activeNode.classList.add("is-speaking");
+    highlightedNodes = [activeNode];
+  }
+
+  function clearSpeechHighlight() {
+    highlightedNodes.forEach(function (node) {
+      node.classList.remove("is-speaking");
+    });
+    highlightedNodes = [];
+  }
+
   return { prime, speak };
 }
 
 export function createPresentationController({
   mode,
   getSelectedEntries,
-  renderTemplateHtml,
+  renderSpeechText,
   speakSentenceById,
   presentationModeButton,
 }) {
@@ -540,7 +672,7 @@ export function createPresentationController({
   slide.addEventListener("click", function () {
     const entry = getSelectedEntries()[presentationIndex];
     if (entry) {
-      speakSentenceById(entry.id);
+      speakSentenceById(entry.id, slide);
     }
   });
 
@@ -620,8 +752,8 @@ export function createPresentationController({
     const entry = entries[presentationIndex];
     slide.innerHTML =
       mode === "english"
-        ? `<div class="presentation-main">${renderTemplateHtml(entry.english)}</div>`
-        : `<div class="presentation-main">${renderTemplateHtml(entry.mandarin)}</div>`;
+        ? `<div class="presentation-main"><span class="speech-track">${renderSpeechText(entry.english, "en-AU").html}</span></div>`
+        : `<div class="presentation-main"><span class="speech-track">${renderSpeechText(entry.mandarin, "zh-CN").html}</span></div>`;
 
     counter.textContent = `${presentationIndex + 1} / ${entries.length}`;
     prevButton.disabled = presentationIndex === 0;
