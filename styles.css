@@ -1126,6 +1126,12 @@ h2 {
   gap: 12px;
 }
 
+.presentation-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .presentation-counter {
   color: rgba(255, 247, 239, 0.82);
   font-size: 0.92rem;
@@ -1150,6 +1156,32 @@ h2 {
   gap: 22px;
   padding: 18px 8px;
   text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.presentation-stage {
+  position: relative;
+  display: grid;
+  min-height: 0;
+}
+
+.presentation-tapzone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  border: 0;
+  background: transparent;
+  z-index: 1;
+}
+
+.presentation-tapzone-left {
+  left: 0;
+}
+
+.presentation-tapzone-right {
+  right: 0;
 }
 
 .presentation-main {
@@ -1172,6 +1204,10 @@ h2 {
   color: #ffd7bf;
 }
 
+.presentation-support.is-hidden {
+  display: none;
+}
+
 .presentation-nav {
   justify-content: center;
 }
@@ -1180,6 +1216,16 @@ h2 {
   opacity: 0.45;
   cursor: default;
   transform: none;
+}
+
+.presentation-toggle {
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff7ef;
+  font: inherit;
+  cursor: pointer;
 }
 
 .material-type {

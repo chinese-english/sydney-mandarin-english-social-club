@@ -497,6 +497,7 @@
   let state = loadState();
   let presentationIndex = 0;
   let touchStartX = 0;
+  let presentationShowSupport = true;
 
   const presentationOverlay = createPresentationOverlay();
 
@@ -1044,9 +1045,16 @@
       <div class="presentation-shell">
         <div class="presentation-topbar">
           <div class="presentation-counter" id="presentationCounter">0 / 0</div>
-          <button class="presentation-close" type="button" aria-label="Close presentation mode">Close</button>
+          <div class="presentation-topbar-actions">
+            <button class="presentation-toggle" type="button" id="presentationToggleSupportButton">Hide support</button>
+            <button class="presentation-close" type="button" aria-label="Close presentation mode">Close</button>
+          </div>
         </div>
-        <div class="presentation-slide" id="presentationSlide"></div>
+        <div class="presentation-stage">
+          <button class="presentation-tapzone presentation-tapzone-left" type="button" id="presentationPrevZone" aria-label="Previous phrase"></button>
+          <div class="presentation-slide" id="presentationSlide"></div>
+          <button class="presentation-tapzone presentation-tapzone-right" type="button" id="presentationNextZone" aria-label="Next phrase"></button>
+        </div>
         <div class="presentation-nav">
           <button class="button button-secondary output-button" type="button" id="presentationPrevButton">Previous</button>
           <button class="button button-primary output-button" type="button" id="presentationNextButton">Next</button>
@@ -1059,6 +1067,9 @@
     const closeButton = overlay.querySelector(".presentation-close");
     const prevButton = overlay.querySelector("#presentationPrevButton");
     const nextButton = overlay.querySelector("#presentationNextButton");
+    const prevZone = overlay.querySelector("#presentationPrevZone");
+    const nextZone = overlay.querySelector("#presentationNextZone");
+    const toggleSupportButton = overlay.querySelector("#presentationToggleSupportButton");
 
     closeButton.addEventListener("click", closePresentationMode);
     prevButton.addEventListener("click", function () {
@@ -1066,6 +1077,16 @@
     });
     nextButton.addEventListener("click", function () {
       movePresentation(1);
+    });
+    prevZone.addEventListener("click", function () {
+      movePresentation(-1);
+    });
+    nextZone.addEventListener("click", function () {
+      movePresentation(1);
+    });
+    toggleSupportButton.addEventListener("click", function () {
+      presentationShowSupport = !presentationShowSupport;
+      renderPresentationSlide();
     });
 
     overlay.addEventListener("click", function (event) {
@@ -1114,6 +1135,7 @@
     }
 
     presentationIndex = 0;
+    presentationShowSupport = true;
     presentationOverlay.classList.add("is-open");
     renderPresentationSlide();
     requestPresentationFullscreen();
@@ -1142,8 +1164,9 @@
     const counter = presentationOverlay.querySelector("#presentationCounter");
     const prevButton = presentationOverlay.querySelector("#presentationPrevButton");
     const nextButton = presentationOverlay.querySelector("#presentationNextButton");
+    const toggleSupportButton = presentationOverlay.querySelector("#presentationToggleSupportButton");
 
-    if (!entries.length || !slide || !counter || !prevButton || !nextButton) {
+    if (!entries.length || !slide || !counter || !prevButton || !nextButton || !toggleSupportButton) {
       return;
     }
 
@@ -1151,23 +1174,32 @@
     const english = fillTemplate(entry.english);
     const mandarin = fillTemplate(entry.mandarin);
     const pinyin = fillTemplate(entry.pinyin);
+    const supportMarkup =
+      mode === "english"
+        ? `
+          <div class="presentation-support ${presentationShowSupport ? "" : "is-hidden"}">${escapeHtml(mandarin)}</div>
+          <div class="presentation-support presentation-pinyin ${presentationShowSupport ? "" : "is-hidden"}">${escapeHtml(pinyin)}</div>
+        `
+        : `
+          <div class="presentation-support presentation-pinyin ${presentationShowSupport ? "" : "is-hidden"}">${escapeHtml(pinyin)}</div>
+          <div class="presentation-support ${presentationShowSupport ? "" : "is-hidden"}">${escapeHtml(english)}</div>
+        `;
 
     slide.innerHTML =
       mode === "english"
         ? `
           <div class="presentation-main">${escapeHtml(english)}</div>
-          <div class="presentation-support">${escapeHtml(mandarin)}</div>
-          <div class="presentation-support presentation-pinyin">${escapeHtml(pinyin)}</div>
+          ${supportMarkup}
         `
         : `
           <div class="presentation-main">${escapeHtml(mandarin)}</div>
-          <div class="presentation-support presentation-pinyin">${escapeHtml(pinyin)}</div>
-          <div class="presentation-support">${escapeHtml(english)}</div>
+          ${supportMarkup}
         `;
 
     counter.textContent = `${presentationIndex + 1} / ${entries.length}`;
     prevButton.disabled = presentationIndex === 0;
     nextButton.disabled = presentationIndex === entries.length - 1;
+    toggleSupportButton.textContent = presentationShowSupport ? "Hide support" : "Show support";
   }
 
   function getSelectedEntries() {
