@@ -495,6 +495,9 @@ export function createSpeechController() {
   let voices = [];
   let unlocked = false;
   let highlightedNodes = [];
+  let fallbackStartTimer = null;
+  let fallbackStepTimer = null;
+  let fallbackSessionId = 0;
 
   function prime() {
     if (!("speechSynthesis" in window)) {
@@ -526,6 +529,9 @@ export function createSpeechController() {
       return;
     }
 
+    const sessionId = fallbackSessionId + 1;
+    fallbackSessionId = sessionId;
+    let boundaryCount = 0;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = language;
     utterance.rate = rate;
@@ -540,13 +546,30 @@ export function createSpeechController() {
         return;
       }
 
+      boundaryCount += 1;
       syncSpeechHighlight(highlightRoot, event.charIndex);
     };
 
-    utterance.onend = clearSpeechHighlight;
-    utterance.onerror = clearSpeechHighlight;
+    utterance.onend = function () {
+      clearSpeechHighlight();
+      clearFallbackTimers();
+    };
+    utterance.onerror = function () {
+      clearSpeechHighlight();
+      clearFallbackTimers();
+    };
 
     clearSpeechHighlight();
+    clearFallbackTimers();
+    maybeStartFallbackHighlight({
+      language,
+      rate,
+      highlightRoot,
+      getBoundaryCount: function () {
+        return boundaryCount;
+      },
+      sessionId,
+    });
 
     try {
       window.speechSynthesis.cancel();
@@ -612,6 +635,67 @@ export function createSpeechController() {
 
     activeNode.classList.add("is-speaking");
     highlightedNodes = [activeNode];
+  }
+
+  function maybeStartFallbackHighlight({ language, rate, highlightRoot, getBoundaryCount, sessionId }) {
+    if (!language.startsWith("zh") || !highlightRoot) {
+      return;
+    }
+
+    fallbackStartTimer = window.setTimeout(function () {
+      if (sessionId !== fallbackSessionId || getBoundaryCount() > 1) {
+        return;
+      }
+
+      const nodes = Array.from(highlightRoot.querySelectorAll("[data-speech-start][data-speech-end]"));
+      if (!nodes.length) {
+        return;
+      }
+
+      let index = Math.max(1, findActiveSpeechIndex(nodes));
+      const stepMs = Math.max(140, Math.round(230 / Math.max(rate || 1, 0.5)));
+
+      fallbackStepTimer = window.setInterval(function () {
+        if (sessionId !== fallbackSessionId) {
+          clearFallbackTimers();
+          return;
+        }
+
+        if (getBoundaryCount() > 1) {
+          clearFallbackTimers();
+          return;
+        }
+
+        if (index >= nodes.length) {
+          clearFallbackTimers();
+          return;
+        }
+
+        clearSpeechHighlight();
+        nodes[index].classList.add("is-speaking");
+        highlightedNodes = [nodes[index]];
+        index += 1;
+      }, stepMs);
+    }, 320);
+  }
+
+  function findActiveSpeechIndex(nodes) {
+    const index = nodes.findIndex(function (node) {
+      return node.classList.contains("is-speaking");
+    });
+    return index === -1 ? 0 : index;
+  }
+
+  function clearFallbackTimers() {
+    if (fallbackStartTimer) {
+      window.clearTimeout(fallbackStartTimer);
+      fallbackStartTimer = null;
+    }
+
+    if (fallbackStepTimer) {
+      window.clearInterval(fallbackStepTimer);
+      fallbackStepTimer = null;
+    }
   }
 
   function clearSpeechHighlight() {
