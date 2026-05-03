@@ -558,7 +558,6 @@
   let state = loadState();
   let presentationIndex = 0;
   let touchStartX = 0;
-  let presentationShowSupport = true;
 
   const presentationOverlay = createPresentationOverlay();
 
@@ -1304,7 +1303,6 @@
         <div class="presentation-topbar">
           <div class="presentation-counter" id="presentationCounter">0 / 0</div>
           <div class="presentation-topbar-actions">
-            <button class="presentation-toggle" type="button" id="presentationToggleSupportButton">Hide support</button>
             <button class="presentation-close" type="button" aria-label="Close presentation mode">×</button>
           </div>
         </div>
@@ -1327,8 +1325,6 @@
     const nextButton = overlay.querySelector("#presentationNextButton");
     const prevZone = overlay.querySelector("#presentationPrevZone");
     const nextZone = overlay.querySelector("#presentationNextZone");
-    const toggleSupportButton = overlay.querySelector("#presentationToggleSupportButton");
-
     closeButton.addEventListener("click", closePresentationMode);
     prevButton.addEventListener("click", function () {
       movePresentation(-1);
@@ -1342,11 +1338,6 @@
     nextZone.addEventListener("click", function () {
       movePresentation(1);
     });
-    toggleSupportButton.addEventListener("click", function () {
-      presentationShowSupport = !presentationShowSupport;
-      renderPresentationSlide();
-    });
-
     overlay.addEventListener("click", function (event) {
       if (event.target === overlay) {
         closePresentationMode();
@@ -1380,6 +1371,17 @@
       }
     });
 
+    const slide = overlay.querySelector("#presentationSlide");
+    if (slide) {
+      slide.addEventListener("click", function () {
+        const entries = getSelectedEntries();
+        const entry = entries[presentationIndex];
+        if (entry) {
+          speakSentenceById(entry.id);
+        }
+      });
+    }
+
     return overlay;
   }
 
@@ -1393,7 +1395,6 @@
     }
 
     presentationIndex = 0;
-    presentationShowSupport = true;
     presentationOverlay.classList.add("is-open");
     renderPresentationSlide();
     requestPresentationFullscreen();
@@ -1422,45 +1423,28 @@
     const counter = presentationOverlay.querySelector("#presentationCounter");
     const prevButton = presentationOverlay.querySelector("#presentationPrevButton");
     const nextButton = presentationOverlay.querySelector("#presentationNextButton");
-    const toggleSupportButton = presentationOverlay.querySelector("#presentationToggleSupportButton");
 
-    if (!entries.length || !slide || !counter || !prevButton || !nextButton || !toggleSupportButton) {
+    if (!entries.length || !slide || !counter || !prevButton || !nextButton) {
       return;
     }
 
     const entry = entries[presentationIndex];
-    const english = fillTemplate(entry.english);
     const mandarin = fillTemplate(entry.mandarin);
-    const pinyin = fillTemplate(entry.pinyin);
     const englishHtml = renderTemplateHtml(entry.english);
     const mandarinHtml = renderTemplateHtml(entry.mandarin);
-    const pinyinHtml = renderTemplateHtml(entry.pinyin);
-    const supportMarkup =
-      mode === "english"
-        ? `
-          <div class="presentation-support ${presentationShowSupport ? "" : "is-hidden"}">${mandarinHtml}</div>
-          <div class="presentation-support presentation-pinyin ${presentationShowSupport ? "" : "is-hidden"}">${pinyinHtml}</div>
-        `
-        : `
-          <div class="presentation-support presentation-pinyin ${presentationShowSupport ? "" : "is-hidden"}">${pinyinHtml}</div>
-          <div class="presentation-support ${presentationShowSupport ? "" : "is-hidden"}">${englishHtml}</div>
-        `;
 
     slide.innerHTML =
       mode === "english"
         ? `
           <div class="presentation-main">${englishHtml}</div>
-          ${supportMarkup}
         `
         : `
           <div class="presentation-main">${mandarinHtml}</div>
-          ${supportMarkup}
         `;
 
     counter.textContent = `${presentationIndex + 1} / ${entries.length}`;
     prevButton.disabled = presentationIndex === 0;
     nextButton.disabled = presentationIndex === entries.length - 1;
-    toggleSupportButton.textContent = presentationShowSupport ? "Hide support" : "Show support";
   }
 
   function getSelectedEntries() {
