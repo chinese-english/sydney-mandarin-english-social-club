@@ -1109,13 +1109,26 @@ h2 {
   margin-top: 16px;
 }
 
-.sentence-preview-button {
+.sentence-line-button {
   width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   text-align: left;
   cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.sentence-line-button:hover .speech-track,
+.sentence-line-button:focus-visible .speech-track {
+  opacity: 0.92;
+}
+
+.sentence-line-button:focus-visible {
+  outline: 2px solid rgba(243, 106, 45, 0.24);
+  outline-offset: 6px;
+  border-radius: 12px;
 }
 
 .preview-line {

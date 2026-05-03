@@ -197,14 +197,13 @@ function renderSentenceCard(entry) {
             <input type="checkbox" data-action="select" data-sentence-id="${entry.id}" ${selected ? "checked" : ""} />
             <span>${selected ? "Selected" : "Select"}</span>
           </label>
-          <button class="mini-button" type="button" data-action="speak" data-sentence-id="${entry.id}" aria-label="Hear this sentence">🔊</button>
           <button class="mini-button" type="button" data-action="hide" data-sentence-id="${entry.id}">Hide</button>
         </div>
       </div>
 
-      <button class="sentence-preview sentence-preview-button" type="button" data-action="speak" data-sentence-id="${entry.id}" aria-label="Hear this sentence">
+      <div class="sentence-preview">
         ${renderSentence(entry)}
-      </button>
+      </div>
 
       ${fields ? `<div class="sentence-fields">${fields}</div>` : ""}
     </article>
@@ -219,31 +218,31 @@ function renderSentence(entry) {
 
   if (mode === "english") {
     return `
-      <div class="preview-line preview-target">
+      <button class="preview-line preview-target sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(templateHelpers.fillTemplate(entry.english))}" data-speak-lang="en-AU">
         <span class="generated-label">English</span>
         <p class="speech-track">${spokenEnglish.html}</p>
-      </div>
-      <div class="preview-line">
+      </button>
+      <button class="preview-line sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(templateHelpers.fillTemplate(entry.mandarin))}" data-speak-lang="zh-CN">
         <span class="generated-label">Mandarin</span>
-        <p>${mandarinHtml}</p>
-      </div>
+        <p class="speech-track">${spokenMandarin.html}</p>
+      </button>
     `;
   }
 
   const pinyinHtml = templateHelpers.renderTemplateHtml(entry.pinyin);
   return `
-    <div class="preview-line preview-target">
+    <button class="preview-line preview-target sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(templateHelpers.fillTemplate(entry.mandarin))}" data-speak-lang="zh-CN">
       <span class="generated-label">Mandarin</span>
       <p class="speech-track">${spokenMandarin.html}</p>
-    </div>
+    </button>
     <div class="preview-line preview-target-secondary">
       <span class="generated-label">Pinyin</span>
       <p>${pinyinHtml}</p>
     </div>
-    <div class="preview-line">
+    <button class="preview-line sentence-line-button" type="button" data-action="speak-line" data-speak-text="${escapeAttribute(templateHelpers.fillTemplate(entry.english))}" data-speak-lang="en-AU">
       <span class="generated-label">English</span>
-      <p>${englishHtml}</p>
-    </div>
+      <p class="speech-track">${spokenEnglish.html}</p>
+    </button>
   `;
 }
 
@@ -329,11 +328,12 @@ function bindDynamicEvents() {
     });
   });
 
-  dom.levelSections.querySelectorAll('[data-action="speak"]').forEach(function (button) {
+  dom.levelSections.querySelectorAll('[data-action="speak-line"]').forEach(function (button) {
     button.addEventListener("click", function () {
-      const sentenceId = button.getAttribute("data-sentence-id");
-      if (sentenceId) {
-        speakSentenceById(sentenceId, button);
+      const text = button.getAttribute("data-speak-text");
+      const language = button.getAttribute("data-speak-lang");
+      if (text && language) {
+        speakPhrase(text, language, button);
       }
     });
   });
@@ -490,10 +490,18 @@ function speakSentenceById(sentenceId, sourceElement) {
     return;
   }
 
+  speakPhrase(
+    mode === "english" ? templateHelpers.fillTemplate(entry.english) : templateHelpers.fillTemplate(entry.mandarin),
+    mode === "english" ? "en-AU" : "zh-CN",
+    sourceElement
+  );
+}
+
+function speakPhrase(text, language, sourceElement) {
   speechController.speak({
-    text: mode === "english" ? templateHelpers.fillTemplate(entry.english) : templateHelpers.fillTemplate(entry.mandarin),
-    language: mode === "english" ? "en-AU" : "zh-CN",
-    rate: mode === "english" ? 0.95 : 0.85,
+    text,
+    language,
+    rate: language.startsWith("zh") ? 0.85 : 0.95,
     highlightRoot: findSpeechHighlightRoot(sourceElement),
   });
 }
