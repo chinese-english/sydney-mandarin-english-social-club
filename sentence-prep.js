@@ -400,6 +400,67 @@
     zuo: "左",
   };
 
+  const ENGLISH_TERM_TRANSLATIONS = {
+    hiking: { zh: "徒步", pinyin: "túbù" },
+    climbing: { zh: "攀岩", pinyin: "pānyán" },
+    reading: { zh: "阅读", pinyin: "yuèdú" },
+    films: { zh: "电影", pinyin: "diànyǐng" },
+    film: { zh: "电影", pinyin: "diànyǐng" },
+    movies: { zh: "电影", pinyin: "diànyǐng" },
+    movie: { zh: "电影", pinyin: "diànyǐng" },
+    music: { zh: "音乐", pinyin: "yīnyuè" },
+    cooking: { zh: "做饭", pinyin: "zuòfàn" },
+    travel: { zh: "旅行", pinyin: "lǚxíng" },
+    travelling: { zh: "旅行", pinyin: "lǚxíng" },
+    traveling: { zh: "旅行", pinyin: "lǚxíng" },
+    running: { zh: "跑步", pinyin: "pǎobù" },
+    swimming: { zh: "游泳", pinyin: "yóuyǒng" },
+    walking: { zh: "散步", pinyin: "sànbù" },
+    photography: { zh: "摄影", pinyin: "shèyǐng" },
+    gaming: { zh: "游戏", pinyin: "yóuxì" },
+    games: { zh: "游戏", pinyin: "yóuxì" },
+    coffee: { zh: "咖啡", pinyin: "kāfēi" },
+    tea: { zh: "茶", pinyin: "chá" },
+    gym: { zh: "健身", pinyin: "jiànshēn" },
+    dancing: { zh: "跳舞", pinyin: "tiàowǔ" },
+    singing: { zh: "唱歌", pinyin: "chànggē" },
+    writing: { zh: "写作", pinyin: "xiězuò" },
+    drawing: { zh: "画画", pinyin: "huàhuà" },
+    cats: { zh: "猫", pinyin: "māo" },
+    dogs: { zh: "狗", pinyin: "gǒu" },
+    dumplings: { zh: "饺子", pinyin: "jiǎozi" },
+    noodles: { zh: "面条", pinyin: "miàntiáo" },
+    sushi: { zh: "寿司", pinyin: "shòusī" },
+    pizza: { zh: "披萨", pinyin: "pīsà" },
+    burgers: { zh: "汉堡", pinyin: "hànbǎo" },
+    burger: { zh: "汉堡", pinyin: "hànbǎo" },
+    pronunciation: { zh: "发音", pinyin: "fāyīn" },
+    listening: { zh: "听力", pinyin: "tīnglì" },
+    speaking: { zh: "口语", pinyin: "kǒuyǔ" },
+    confidence: { zh: "自信", pinyin: "zìxìn" },
+    beaches: { zh: "海滩", pinyin: "hǎitān" },
+    beach: { zh: "海滩", pinyin: "hǎitān" },
+    friends: { zh: "朋友", pinyin: "péngyou" },
+    language: { zh: "语言", pinyin: "yǔyán" },
+    exchange: { zh: "交流", pinyin: "jiāoliú" },
+  };
+
+  const AUTO_TRANSLATE_FIELDS = new Set([
+    "hobbies",
+    "weekend",
+    "food",
+    "work",
+    "study",
+    "reason",
+    "improve",
+    "challenge",
+    "goal",
+    "enjoy",
+    "interesting_place",
+    "project",
+  ]);
+  const translationTimers = {};
+
   const FIELD_DEFS = {
     name: fieldDef("Name", "Max", "马克思", "Mǎkèsī"),
     from: fieldDef("Where you are from", "Australia", "澳大利亚", "Àodàlìyà"),
@@ -661,6 +722,7 @@
               <input type="checkbox" data-action="select" data-sentence-id="${entry.id}" ${selected ? "checked" : ""} />
               <span>${selected ? "Selected" : "Select"}</span>
             </label>
+            <button class="mini-button" type="button" data-action="speak" data-sentence-id="${entry.id}">Hear</button>
             <button class="mini-button" type="button" data-action="hide" data-sentence-id="${entry.id}">Hide</button>
           </div>
         </div>
@@ -777,6 +839,17 @@
       });
     });
 
+    levelSectionsEl.querySelectorAll('[data-action="speak"]').forEach((button) => {
+      button.addEventListener("click", function () {
+        const sentenceId = button.getAttribute("data-sentence-id");
+        if (!sentenceId) {
+          return;
+        }
+
+        speakSentenceById(sentenceId);
+      });
+    });
+
     levelSectionsEl.querySelectorAll("[data-profile-key]").forEach((input) => {
       input.addEventListener("input", function () {
         const key = input.getAttribute("data-profile-key");
@@ -785,6 +858,10 @@
         }
 
         state.profile[key] = input.value;
+        const fieldMeta = parseProfileFieldKey(key);
+        if (fieldMeta && AUTO_TRANSLATE_FIELDS.has(fieldMeta.base)) {
+          handleAutoTranslationFieldEdit(fieldMeta);
+        }
         if (key === "name_zh") {
           if (!state.profile.name_zh.trim() || state.profile.name_zh === state.profile.name_zh_auto) {
             state.profile.name_zh_auto_locked = "";
@@ -965,6 +1042,166 @@
       state.profile.name_zh = suggested;
       state.profile.name_zh_auto = suggested;
     }
+  }
+
+  function parseProfileFieldKey(key) {
+    const match = key.match(/^(.+)_(en|zh|pinyin)$/);
+    if (!match) {
+      return null;
+    }
+
+    return { base: match[1], variant: match[2] };
+  }
+
+  function handleAutoTranslationFieldEdit(fieldMeta) {
+    const { base, variant } = fieldMeta;
+    const lockKey = `${base}_auto_locked`;
+    const zhAutoKey = `${base}_zh_auto`;
+    const pinyinAutoKey = `${base}_pinyin_auto`;
+
+    if (variant === "en") {
+      scheduleAutoTranslation(base);
+      return;
+    }
+
+    if (variant === "zh") {
+      const current = (state.profile[`${base}_zh`] || "").trim();
+      const auto = (state.profile[zhAutoKey] || "").trim();
+      if (!current || current === auto) {
+        state.profile[lockKey] = "";
+      } else if (auto && current !== auto) {
+        state.profile[lockKey] = "1";
+      }
+      return;
+    }
+
+    if (variant === "pinyin") {
+      const current = (state.profile[`${base}_pinyin`] || "").trim();
+      const auto = (state.profile[pinyinAutoKey] || "").trim();
+      if (!current || current === auto) {
+        state.profile[lockKey] = "";
+      } else if (auto && current !== auto) {
+        state.profile[lockKey] = "1";
+      }
+    }
+  }
+
+  function scheduleAutoTranslation(base) {
+    if (translationTimers[base]) {
+      window.clearTimeout(translationTimers[base]);
+    }
+
+    translationTimers[base] = window.setTimeout(function () {
+      maybeAutofillTranslatedField(base);
+    }, 450);
+  }
+
+  async function maybeAutofillTranslatedField(base) {
+    const english = (state.profile[`${base}_en`] || "").trim();
+    const zhKey = `${base}_zh`;
+    const pinyinKey = `${base}_pinyin`;
+    const zhAutoKey = `${base}_zh_auto`;
+    const pinyinAutoKey = `${base}_pinyin_auto`;
+    const lockKey = `${base}_auto_locked`;
+    const locked = state.profile[lockKey] === "1";
+
+    if (!english || locked) {
+      return;
+    }
+
+    let translated = translateEnglishList(english);
+    if (!translated || translated.isPartial) {
+      const remoteTranslated = await translateEnglishText(english);
+      if (remoteTranslated) {
+        translated = remoteTranslated;
+      }
+    }
+
+    if (!translated) {
+      return;
+    }
+
+    const currentZh = (state.profile[zhKey] || "").trim();
+    const currentPinyin = (state.profile[pinyinKey] || "").trim();
+    const previousZhAuto = (state.profile[zhAutoKey] || "").trim();
+    const previousPinyinAuto = (state.profile[pinyinAutoKey] || "").trim();
+
+    if (!currentZh || !previousZhAuto || currentZh === previousZhAuto) {
+      state.profile[zhKey] = translated.zh;
+      state.profile[zhAutoKey] = translated.zh;
+    }
+
+    if (!currentPinyin || !previousPinyinAuto || currentPinyin === previousPinyinAuto) {
+      state.profile[pinyinKey] = translated.pinyin;
+      state.profile[pinyinAutoKey] = translated.pinyin;
+    }
+
+    saveState();
+    rerenderPreviewContent();
+  }
+
+  function translateEnglishList(input) {
+    const terms = splitEnglishTerms(input);
+    if (!terms.length) {
+      return null;
+    }
+
+    const translated = terms.map((term) => translateEnglishTerm(term));
+    return {
+      zh: joinChineseTerms(translated.map((item) => item.zh)),
+      pinyin: joinPinyinTerms(translated.map((item) => item.pinyin)),
+      isPartial: translated.some((item) => item.isFallback),
+    };
+  }
+
+  function splitEnglishTerms(input) {
+    return input
+      .replace(/\s+and\s+/gi, ",")
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+
+  function translateEnglishTerm(term) {
+    const normalized = term.toLowerCase().trim();
+    const direct = ENGLISH_TERM_TRANSLATIONS[normalized];
+    if (direct) {
+      return {
+        zh: direct.zh,
+        pinyin: direct.pinyin,
+        isFallback: false,
+      };
+    }
+
+    return {
+      zh: term,
+      pinyin: term,
+      isFallback: true,
+    };
+  }
+
+  function joinChineseTerms(terms) {
+    if (terms.length <= 1) {
+      return terms[0] || "";
+    }
+
+    if (terms.length === 2) {
+      return `${terms[0]}和${terms[1]}`;
+    }
+
+    return `${terms.slice(0, -1).join("、")}和${terms[terms.length - 1]}`;
+  }
+
+  function joinPinyinTerms(terms) {
+    if (terms.length <= 1) {
+      return terms[0] || "";
+    }
+
+    if (terms.length === 2) {
+      return `${terms[0]} hé ${terms[1]}`;
+    }
+
+    return `${terms.slice(0, -1).join(", ")} hé ${terms[terms.length - 1]}`;
   }
 
   function transliterateNamePinyinToHanzi(input) {
@@ -1214,6 +1451,83 @@
     }
 
     presentationOverlay.requestFullscreen().catch(function () {});
+  }
+
+  async function translateEnglishText(text) {
+    try {
+      const translatedZh = await fetchGoogleTranslate(text, "en", "zh-CN", ["t"]);
+      if (!translatedZh || !translatedZh.translation) {
+        return null;
+      }
+
+      const transliterated = await fetchGoogleTranslate(translatedZh.translation, "zh-CN", "en", ["rm"]);
+      return {
+        zh: translatedZh.translation,
+        pinyin: transliterated && transliterated.romanization ? transliterated.romanization : translatedZh.translation,
+      };
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  async function fetchGoogleTranslate(text, sl, tl, dts) {
+    const url = new URL("https://translate.googleapis.com/translate_a/single");
+    url.searchParams.set("client", "gtx");
+    url.searchParams.set("sl", sl);
+    url.searchParams.set("tl", tl);
+    url.searchParams.set("q", text);
+    dts.forEach((dt) => url.searchParams.append("dt", dt));
+
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return {
+      translation: extractGoogleTranslation(data),
+      romanization: extractGoogleRomanization(data),
+    };
+  }
+
+  function extractGoogleTranslation(data) {
+    if (!Array.isArray(data) || !Array.isArray(data[0])) {
+      return "";
+    }
+
+    return data[0]
+      .map((chunk) => (Array.isArray(chunk) ? chunk[0] || "" : ""))
+      .join("")
+      .trim();
+  }
+
+  function extractGoogleRomanization(data) {
+    if (!Array.isArray(data) || !Array.isArray(data[0])) {
+      return "";
+    }
+
+    for (let i = 0; i < data[0].length; i += 1) {
+      const chunk = data[0][i];
+      if (Array.isArray(chunk) && typeof chunk[3] === "string" && chunk[3].trim()) {
+        return chunk[3].trim();
+      }
+    }
+
+    return "";
+  }
+
+  function speakSentenceById(sentenceId) {
+    const entry = SENTENCES.find((item) => item.id === sentenceId);
+    if (!entry || !("speechSynthesis" in window)) {
+      return;
+    }
+
+    const text = mode === "english" ? fillTemplate(entry.english) : fillTemplate(entry.mandarin);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = mode === "english" ? "en-AU" : "zh-CN";
+    utterance.rate = mode === "english" ? 0.95 : 0.85;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
   }
 
   function addSelected(sentenceId) {

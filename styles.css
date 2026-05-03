@@ -887,6 +887,40 @@ h2 {
   align-items: start;
 }
 
+.prep-header {
+  padding-top: 26px;
+  padding-bottom: 26px;
+}
+
+.prep-header-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.prep-title {
+  font-size: clamp(2.4rem, 5vw, 3.8rem);
+}
+
+.prep-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.prep-meta {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.prep-meta p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .prep-main {
   display: grid;
   gap: 16px;
@@ -1401,7 +1435,8 @@ h2 {
   .chapter-grid,
   .materials-grid,
   .hero-band,
-  .mode-toggle {
+  .mode-toggle,
+  .prep-header-bar {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: flex-start;
