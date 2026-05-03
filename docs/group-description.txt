@@ -12,7 +12,7 @@ We meet every Wednesday night from 7-8pm in and around central Sydney. Locations
 
 Each meetup has a simple structure so you are never stuck not knowing what to say.
 
-Before the meetup, people can prepare their lines on the website:
+Before the meetup, people prepare their lines on the website:
 
 Main site:
 https://chinese-english.github.io/sydney-mandarin-english-social-club/
@@ -26,6 +26,8 @@ https://chinese-english.github.io/sydney-mandarin-english-social-club/english.ht
 English speakers use the Chinese prep page to prepare the Chinese lines they want to say.
 
 Chinese speakers use the English prep page to prepare the English lines they want to say.
+
+Preparation is on the website. Slack is only for chatting with each other if people want to.
 
 At the meetup, we start with short introductions and warm-up conversations so everyone can begin speaking quickly.
 

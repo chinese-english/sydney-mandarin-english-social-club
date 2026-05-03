@@ -1593,6 +1593,22 @@ h2 {
     flex-direction: column;
   }
 
+  .sentence-card-head,
+  .selected-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sentence-card-actions,
+  .output-utility-actions {
+    width: 100%;
+  }
+
+  .speed-control {
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
   .output-actions {
     flex-wrap: wrap;
   }
@@ -1618,6 +1634,57 @@ h2 {
   .site-nav a {
     padding: 8px 11px;
     font-size: 0.86rem;
+  }
+
+  .speed-control {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "label value"
+      "slider slider";
+    row-gap: 8px;
+  }
+
+  .speed-control span {
+    grid-area: label;
+  }
+
+  .speed-control input {
+    grid-area: slider;
+  }
+
+  .speed-control strong {
+    grid-area: value;
+    min-width: 0;
+  }
+
+  .select-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sentence-card-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .output-utility-actions {
+    justify-content: flex-end;
+  }
+
+  .presentation-overlay {
+    padding: 0;
+  }
+
+  .presentation-shell {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .presentation-nav {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .hero-actions,
